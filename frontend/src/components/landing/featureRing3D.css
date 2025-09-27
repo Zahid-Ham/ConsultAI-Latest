@@ -1,0 +1,203 @@
+/* frontend/src/components/landing/featureRing3D.css */
+
+/* Root variables — tweak sizes here */
+:root {
+  --carousel-height: 420px;
+  --card-w: 320px;
+  --card-h: 380px;
+  --card-radius: 18px;
+  --perspective: 1200px;
+  --desktop-max-width: 1000px;
+}
+
+/* Container */
+.feature-carousel-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 18px 12px 36px;
+  box-sizing: border-box;
+}
+
+/* stage holds the 3D items */
+.feature-carousel {
+  width: 100%;
+  max-width: var(--desktop-max-width);
+  height: var(--carousel-height);
+  position: relative;
+  perspective: var(--perspective);
+  -webkit-perspective: var(--perspective);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: pan-y;
+  overflow: visible; /* allow arrows to sit outside cleanly */
+}
+
+/* track that contains cards, enables preserve-3d */
+.carousel-stage {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(.2,.9,.3,1);
+}
+
+/* each card is centered (left:50% top:50%) and then rotated in 3d */
+.carousel-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--card-w);
+  height: var(--card-h);
+  transform-style: preserve-3d;
+  border-radius: var(--card-radius);
+  box-shadow: 0 18px 40px rgba(13, 18, 30, 0.18);
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 600ms cubic-bezier(.2,.9,.3,1), opacity 400ms ease;
+  will-change: transform, opacity;
+}
+
+/* While interacting (drag/inertia) we disable smooth transition */
+.carousel-stage.interacting .carousel-card {
+  transition: none;
+}
+
+/* front card can have stronger shadow */
+.carousel-card.front {
+  box-shadow: 0 28px 60px rgba(13, 18, 30, 0.26);
+}
+
+/* Card face content — rotated back to be readable */
+.card-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  box-sizing: border-box;
+  color: white;
+  gap: 8px;
+  pointer-events: auto; /* ✅ Allow clicks inside card (for Explore button only) */
+}
+.card-face button {
+  pointer-events: auto; /* re-enable clicks on buttons */
+}
+
+/* emoji bubble */
+.card-emoji {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: inline-grid;
+  place-items: center;
+  font-size: 20px;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(4px);
+}
+
+/* content */
+.card-title {
+  font-weight: 700;
+  font-size: 1.25rem;
+  margin-top: 8px;
+  line-height: 1.15;
+}
+.card-blurb {
+  margin-top: 12px;
+  color: rgba(255,255,255,0.92);
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+/* CTA button */
+.card-cta {
+  margin-top: auto;
+  display: inline-block;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  border: 1px solid rgba(255,255,255,0.12);
+  backdrop-filter: blur(4px);
+  cursor: pointer; /* ✅ pointer for Explore button */
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+.card-cta:hover {
+  background: rgba(255,255,255,0.22);
+  transform: scale(1.05);
+}
+
+/* nav arrows */
+.carousel-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255,255,255,0.98);
+  box-shadow: 0 12px 30px rgba(12, 18, 32, 0.12);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-size: 26px;
+  font-weight: bold;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+.carousel-nav-btn:hover {
+  background: rgba(255,255,255,1);
+  transform: scale(1.1);
+}
+.carousel-nav-btn.left { left: -60px; }
+.carousel-nav-btn.right { right: -60px; }
+
+/* dot indicators */
+.carousel-dots {
+  width: 100%;
+  display:flex;
+  justify-content:center;
+  gap: 8px;
+  position: absolute;
+  bottom: -18px;
+  left:0; right:0;
+}
+.carousel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(30,30,30,0.12);
+  cursor: pointer;
+  border: 2px solid rgba(255,255,255,0.06);
+  transition: transform 200ms ease, background 200ms ease;
+}
+.carousel-dot.active {
+  background: rgba(30,30,30,0.9);
+  transform: scale(1.15);
+}
+
+/* small screens — reduce card size & carousel height */
+@media (max-width: 740px) {
+  :root {
+    --carousel-height: 360px;
+    --card-w: 260px;
+    --card-h: 300px;
+  }
+
+  .carousel-nav-btn.left { left: -40px; }
+  .carousel-nav-btn.right { right: -40px; }
+}
+
+/* micro polish: while grabbing */
+.carousel-card:active { cursor: grabbing; }
+.carousel-card {
+  cursor: default; /* ✅ No clickable hand cursor */
+}

@@ -1,0 +1,48 @@
+// frontend/src/components/landing/featureData.js
+export const FEATURES = [
+  {
+    id: "find-doctor",
+    title: "Find a Doctor",
+    blurb: "Search and connect with qualified specialists tailored to your needs.",
+    to: "/finddoctor",
+    colorFrom: "#6A8DFF",
+    colorTo: "#7B5CFF",
+    emoji: "🩺",
+  },
+  {
+    id: "ai-chat",
+    title: "AI Chat",
+    blurb: "Instant AI-powered guidance for common health questions and triage.",
+    to: "/chatwithai",
+    colorFrom: "#34D399",
+    colorTo: "#06B6D4",
+    emoji: "🤖",
+  },
+  {
+    id: "security",
+    title: "Secure & Private",
+    blurb: "Industry-grade encryption and privacy controls for your records.",
+    to: "/security-info",
+    colorFrom: "#8B5CF6",
+    colorTo: "#EC4899",
+    emoji: "🔒",
+  },
+  {
+    id: "availability",
+    title: "24/7 Availability",
+    blurb: "Doctors & AI assistants available anytime — wherever you are.",
+    to: "/availability",
+    colorFrom: "#FB923C",
+    colorTo: "#EF4444",
+    emoji: "⏰",
+  },
+  {
+    id: "records",
+    title: "Health Records",
+    blurb: "Store and access your medical documents safely and easily.",
+    to: "/dashboard",
+    colorFrom: "#60A5FA",
+    colorTo: "#3B82F6",
+    emoji: "📄",
+  },
+];

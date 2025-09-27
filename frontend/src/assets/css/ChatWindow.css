@@ -1,0 +1,155 @@
+/* frontend/src/assets/css/ChatWindow.css */
+
+.chat-window {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    background-color: #f7f7f7;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.chat-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    background-color: #fff;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    text-align: center;
+}
+
+.chat-messages-container {
+    flex: 1; /* Allows this container to take up all available vertical space */
+    overflow-y: auto; /* Enables vertical scrolling when content overflows */
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    /* Use a simple flex-direction to allow content to grow naturally */
+}
+
+.chat-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-grow: 1; /* This is the key to pushing content up, allowing the container to scroll */
+}
+
+.message-bubble {
+    max-width: 90%; /* Increased width to accommodate more text */
+    padding: 8px 12px; /* Reduced padding for a smaller, more compact font feel */
+    border-radius: 18px; /* Slightly adjusted border-radius */
+    font-size: 14px; /* Reduced font size to accommodate more text */
+    line-height: 1.4;
+    position: relative;
+    word-wrap: break-word;
+    display: flex;
+    align-items: center;
+}
+
+.message-content {
+    white-space: pre-wrap;
+}
+
+.message-bubble.sent {
+    background-color: #007bff;
+    color: #fff;
+    align-self: flex-end;
+    border-bottom-right-radius: 5px;
+}
+
+.message-bubble.received {
+    background-color: #e4e6eb;
+    color: #333;
+    align-self: flex-start;
+    border-bottom-left-radius: 5px;
+}
+
+.message-actions {
+    margin-left: 10px;
+    /* Correct positioning for the delete button */
+    display: none;
+}
+
+/* Show actions on hover */
+.message-bubble:hover .message-actions {
+    display: flex;
+    align-items: center;
+}
+
+.delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 5px;
+}
+
+.message-bubble.sent .delete-btn {
+    color: #fff;
+}
+
+.message-bubble.received .delete-btn {
+    color: #555;
+}
+
+.message-input-area {
+    display: flex;
+    align-items: center; /* Aligns input and send button vertically */
+    padding: 15px 20px;
+    border-top: 1px solid #e0e0e0;
+    background-color: #fff;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+.message-input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    font-size: 16px;
+    outline: none;
+    resize: none; /* Prevents user from resizing textarea */
+    min-height: 40px; /* Ensures a consistent height even with no text */
+    line-height: 1.4;
+    transition: border-color 0.3s ease;
+}
+
+.message-input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+}
+
+.send-btn {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    flex-shrink: 0; /* Prevents the button from shrinking on small screens */
+}
+
+.send-btn:hover {
+    background-color: #0056b3;
+    transform: scale(1.05); /* Adds a slight zoom effect on hover */
+}
+
+.send-btn:disabled {
+    background-color: #b0c4de;
+    cursor: not-allowed;
+}
+
+.empty-chat-window {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
