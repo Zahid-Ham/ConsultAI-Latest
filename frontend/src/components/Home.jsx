@@ -14,34 +14,39 @@ const Home = () => {
       <header style={{ padding: "48px 16px", textAlign: "center" }}>
         <div className="welcome-card">
           <h1 className="welcome-title">
-            Welcome to <span style={{ color: "#6a5cff" }}>ConsultAI</span>
+            Welcome to <span className="consultai-accent">ConsultAI</span>
           </h1>
           <p className="welcome-subtitle">
             Your trusted healthcare consultation platform
           </p>
+
           {!isAuthenticated() && (
-            <div
-              style={{
-                marginTop: 18,
-                display: "flex",
-                gap: 12,
-                justifyContent: "center",
-              }}
-            >
+            <div className="welcome-actions">
               <Link to="/login">
                 <button className="explore">Sign In</button>
               </Link>
               <Link to="/register">
-                <button className="explore">Register</button>
+                <button className="explore" style={{ background: "#23272f", color: "#ffd700" }}>Create Account</button>
+              </Link>
+            </div>
+          )}
+
+          {isAuthenticated() && (
+            <div className="welcome-actions">
+              <span className="welcome-user">Welcome, {user?.name}!</span>
+              <Link to="/dashboard">
+                <button className="explore">Go to Dashboard</button>
               </Link>
             </div>
           )}
         </div>
       </header>
+
       {/* 3D carousel */}
       <main>
         <FeatureRing3D />
       </main>
+
       {/* optional footer spacing */}
       <div style={{ height: 40 }} />
     </div>
