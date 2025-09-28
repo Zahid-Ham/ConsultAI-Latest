@@ -1,0 +1,68 @@
+.report-upload-container {
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+}
+
+.upload-section {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.file-input {
+  flex: 1;
+  padding: 8px;
+}
+
+.upload-btn {
+  padding: 8px 16px;
+  cursor: pointer;
+  background-color: blueviolet;
+}
+
+.upload-status {
+  margin-top: 10px;
+}
+
+.reports-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.reports-table th,
+.reports-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+.report-row:hover {
+  background-color: #f1f1f1;
+  cursor: pointer;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 10px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #555;
+  transition: color 0.2s;
+}
+
+.icon-btn:hover {
+  color: #000;
+}
+
+.preview-container {
+  margin-top: 20px;
+  border-top: 1px solid #ccc;
+  padding-top: 20px;
+}
