@@ -1,12 +1,14 @@
 // frontend/src/components/Navigation.jsx
 
 import React, { useState } from 'react';
+import { FaMoon } from 'react-icons/fa';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthContext } from '../contexts/AuthContext';
 import { FaCommentDots, FaUserMd } from 'react-icons/fa';
 
 const Navigation = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [darkMode, setDarkMode] = useState(false);
     const location = useLocation();
     // Destructure the logout function from useAuthContext
     const { user, isAuthenticated, isAdmin, logout } = useAuthContext();
@@ -21,6 +23,19 @@ const Navigation = () => {
         setIsMenuOpen(false);
     };
 
+    // Toggle dark mode and add/remove dark class from body
+    const handleDarkModeToggle = () => {
+        setDarkMode((prev) => {
+            const newMode = !prev;
+            if (newMode) {
+                document.body.classList.add('dark');
+            } else {
+                document.body.classList.remove('dark');
+            }
+            return newMode;
+        });
+    };
+
     // Check if the current path is the AI chat page
     const isAiChatPage = location.pathname === '/chat/ai';
 
@@ -30,6 +45,24 @@ const Navigation = () => {
                 <Link to="/" className="nav-logo">
                     <h2>ConsultAI</h2>
                 </Link>
+
+                {/* Dark mode toggle button */}
+                <button
+                    className={`dark-mode-toggle${darkMode ? ' active' : ''}`}
+                    onClick={handleDarkModeToggle}
+                    aria-label="Toggle dark mode"
+                    style={{
+                        background: 'none',
+                        border: 'none',
+                        color: darkMode ? '#ffd700' : '#333',
+                        fontSize: '1.5rem',
+                        cursor: 'pointer',
+                        marginLeft: '1rem',
+                        verticalAlign: 'middle',
+                    }}
+                >
+                    <FaMoon />
+                </button>
 
                 <div className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
                     <Link
