@@ -85,13 +85,17 @@ export async function analyzeReport(req, res) {
       return res.status(400).json({ error: "PDF file is required." });
     }
 
-    let chatSession = await Chat.findById(chatId);
+    let chatSession = null;
+    if (chatId && chatId !== "null") {
+      chatSession = await Chat.findById(chatId);
+    }
     if (!chatSession) {
       chatSession = new Chat({
         userId: req.user.id,
         title: "Report Analysis",
         messages: [],
       });
+      await chatSession.save();
     }
 
     chatSession.messages.push({
