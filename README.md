@@ -3,6 +3,7 @@
 ConsultAI is a full-stack web application designed to connect patients with verified doctors for real-time chat consultations. The platform features secure authentication, chat history, AI chatbot support, and a modern, user-friendly interface for both patients and doctors.
 
 ## Features
+
 - Patient and doctor registration/login
 - Real-time chat between patients and doctors
 - AI chatbot for instant medical queries
@@ -14,6 +15,7 @@ ConsultAI is a full-stack web application designed to connect patients with veri
 - Backend powered by Node.js, Express, and MongoDB
 
 ## Project Structure
+
 ```
 ConsultAI-main/
 ├── backend/         # Node.js/Express API & Socket server
@@ -22,6 +24,7 @@ ConsultAI-main/
 ```
 
 ## Prerequisites
+
 - Node.js (v16 or above recommended)
 - npm (comes with Node.js)
 - MongoDB (local or cloud instance)
@@ -29,50 +32,64 @@ ConsultAI-main/
 ## Setup Instructions
 
 ### 1. Clone the Repository
+
 ```sh
 git clone https://github.com/<your-username>/ConsultAI-main.git
 cd ConsultAI-main
 ```
 
 ### 2. Backend Setup
+
 ```sh
 cd backend
 npm install
 ```
 
 #### Configure Environment Variables
+
 - Copy `.env.example` to `.env` and fill in your MongoDB URI and JWT secret:
+
 ```sh
 cp env.example .env
 ```
+
 - Edit `.env` with your values.
 
 #### Start Backend Server
+
 ```sh
 npm start
 ```
+
 - The backend will run on `http://localhost:5000` by default.
 
 ### 3. Frontend Setup
+
 ```sh
 cd ../frontend
 npm install
 ```
 
 #### Configure Environment Variables
+
 - Copy `.env.example` to `.env` and set the backend API URL:
+
 ```sh
 cp env.example .env
 ```
+
 - Edit `.env` with your values (e.g., `VITE_API_URL=http://localhost:5000`).
 
 #### Start Frontend (React + Vite)
+
 ```sh
 npm run dev
 ```
+
 - The frontend will run on `http://localhost:5173` by default.
 
 ## Usage Guide
+
 - Register as a patient or doctor.
 - Patients can search/filter doctors and start chat consultations.
 - Doctors can view and respond to patient messages.
@@ -80,7 +97,9 @@ npm run dev
 - Admins can manage users and view chat histories.
 
 ## Key Packages
+
 ### Backend
+
 - express
 - mongoose
 - jsonwebtoken
@@ -88,6 +107,7 @@ npm run dev
 - socket.io
 
 ### Frontend
+
 - react
 - react-router-dom
 - axios
@@ -95,20 +115,24 @@ npm run dev
 - vite
 
 ## Troubleshooting
+
 - Ensure MongoDB is running and accessible.
 - Check `.env` files for correct configuration.
 - If ports are busy, change them in the `.env` or config files.
 - For any missing packages, run `npm install` in the respective folder.
 
 ## Contributing
+
 Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
 
 ## License
+
 This project is licensed under the MIT License.
 
 ---
 
 **ConsultAI** empowers patients and doctors to connect, chat, and consult securely and efficiently. For questions or support, open an issue on GitHub.
+
 # ConsultAI
 
 ConsultAI is a web application for medical consultations, connecting patients with doctors.
@@ -144,6 +168,7 @@ npm install
 ```
 
 3. Set up environment variables:
+
    - Copy `backend/env.example` to `backend/.env`
    - Copy `frontend/env.example` to `frontend/.env`
    - Update the values as needed
@@ -176,18 +201,22 @@ npm run dev
 The following test accounts are available for testing:
 
 ### Admin Account
+
 - **Email:** admin@consultai.com
 - **Password:** admin123
 
 ### Doctor Account (Verified)
+
 - **Email:** doctor@consultai.com
 - **Password:** doctor123
 
 ### Patient Account
+
 - **Email:** patient@consultai.com
 - **Password:** patient123
 
 ### Unverified Doctor Account
+
 - **Email:** unverified@consultai.com
 - **Password:** unverified123
 
