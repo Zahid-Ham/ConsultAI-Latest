@@ -28,67 +28,138 @@ ConsultAI-main/
 
 ## Setup Instructions
 
+# ConsultAI
+
+ConsultAI is a full-stack web application for modern medical consultations, connecting patients and doctors with real-time chat, AI support, and premium document management features.
+
+## ✨ Key Features
+- Patient and doctor registration/login (with Google Sign-In)
+- Real-time chat between patients and doctors
+- AI chatbot for instant medical queries
+- Doctor filtering by name and specialization
+- Chat history and sidebar navigation
+- Admin dashboard for user management
+- Secure authentication and role-based authorization
+- **Medical Report Upload:**
+   - Drag & drop and multi-file upload
+   - Premium grid/list views for documents
+   - Batch select, select all, and batch delete
+   - Sorting, filtering, and search
+   - Storage usage bar (coming soon)
+   - Dark/light mode and creative UI animations
+
+## 🗂️ Project Structure
+```
+ConsultAI-main/
+├── backend/         # Node.js/Express API & Socket server
+├── frontend/        # React + Vite client app
+└── README.md        # Project documentation
+```
+
+## 🚀 Quick Start
+
 ### 1. Clone the Repository
 ```sh
 git clone https://github.com/<your-username>/ConsultAI-main.git
 cd ConsultAI-main
 ```
 
-### 2. Backend Setup
+### 2. Install All Dependencies (One Command)
 ```sh
+cd backend && npm install && cd ../frontend && npm install
+```
+
+### 3. Configure Environment Variables
+
+#### Backend
+- Copy `env.example` to `.env`:
+   ```sh
+   cd backend
+   cp env.example .env
+   ```
+- Edit `.env` and set:
+   - `MONGODB_URI` (your MongoDB connection string)
+   - `JWT_SECRET` (any strong secret)
+   - Cloudinary keys for document upload
+
+#### Frontend
+- Copy `env.example` to `.env`:
+   ```sh
+   cd ../frontend
+   cp env.example .env
+   ```
+- Edit `.env` and set:
+   - `VITE_API_URL=http://localhost:5000` (or your backend URL)
+
+### 4. Seed the Database (Optional)
+```sh
+cd ../backend
+npm run seed:admin      # Create admin user
+npm run seed:test-users # Create test users (doctor, patient, etc.)
+```
+
+### 5. Start the Servers
+```sh
+# Start backend
 cd backend
-npm install
-```
-
-#### Configure Environment Variables
-- Copy `.env.example` to `.env` and fill in your MongoDB URI and JWT secret:
-```sh
-cp env.example .env
-```
-- Edit `.env` with your values.
-
-#### Start Backend Server
-```sh
-npm start
-```
-- The backend will run on `http://localhost:5000` by default.
-
-### 3. Frontend Setup
-```sh
+npm run dev
+# Start frontend (in a new terminal)
 cd ../frontend
-npm install
-```
-
-#### Configure Environment Variables
-- Copy `.env.example` to `.env` and set the backend API URL:
-```sh
-cp env.example .env
-```
-- Edit `.env` with your values (e.g., `VITE_API_URL=http://localhost:5000`).
-
-#### Start Frontend (React + Vite)
-```sh
 npm run dev
 ```
-- The frontend will run on `http://localhost:5173` by default.
 
-## Usage Guide
-- Register as a patient or doctor.
-- Patients can search/filter doctors and start chat consultations.
-- Doctors can view and respond to patient messages.
-- Use the AI chatbot for instant medical queries.
-- Admins can manage users and view chat histories.
+### 6. Access the App
+- Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-## Key Packages
+## 📝 Usage Guide
+- Register as a patient or doctor (or use test accounts below)
+- Patients: search/filter doctors, upload/view/delete medical reports, start chat consultations
+- Doctors: view/respond to patient messages, manage reports
+- Use the AI chatbot for instant medical queries
+- Admins: manage users, verify doctors, view chat histories
+
+## 👤 Test Accounts
+| Role      | Email                   | Password      |
+|-----------|------------------------|---------------|
+| Admin     | admin@consultai.com    | admin123      |
+| Doctor    | doctor@consultai.com   | doctor123     |
+| Patient   | patient@consultai.com  | patient123    |
+| Unverified| unverified@consultai.com| unverified123 |
+
+## 🔑 .env Setup
+
+### Backend `.env` example:
+```
+MONGODB_URI=mongodb://localhost:27017/consultai
+JWT_SECRET=your_jwt_secret
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
+
+### Frontend `.env` example:
+```
+VITE_API_URL=http://localhost:5000
+```
+
+## 🛠️ Key Packages
 ### Backend
-- express
-- mongoose
-- jsonwebtoken
-- bcryptjs
-- socket.io
-
+- express, mongoose, jsonwebtoken, bcryptjs, socket.io, multer, cloudinary
 ### Frontend
-- react
+- react, react-router-dom, axios, socket.io-client, vite
+
+## 💡 Troubleshooting
+- Ensure MongoDB is running and accessible
+- Check `.env` files for correct configuration
+- If ports are busy, change them in `.env` or config files
+- For missing packages, run `npm install` in the respective folder
+
+## 🤝 Contributing
+Pull requests are welcome! For major changes, open an issue first to discuss what you would like to change.
+
+## 📄 License
+MIT
+
 - react-router-dom
 - axios
 - socket.io-client
