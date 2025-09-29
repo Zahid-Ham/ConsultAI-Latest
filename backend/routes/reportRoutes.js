@@ -11,13 +11,13 @@ router.post("/upload", upload.single("file"), async (req, res) => {
 
     // DEBUG: Let's see what Cloudinary actually returns
     console.log("Full req.file object:", JSON.stringify(req.file, null, 2));
-    
+
     // With CloudinaryStorage, the public_id is in req.file.filename
     // The filename contains the full public_id including the folder
     const cloudinaryId = req.file.filename; // This should be "PDF-DOCS-IMGS/xxxxx"
 
     console.log("Using cloudinaryId:", cloudinaryId);
-    
+
     // Validate that we have a cloudinaryId
     if (!cloudinaryId) {
       throw new Error("Failed to get Cloudinary public_id from upload");
@@ -44,7 +44,9 @@ router.post("/upload", upload.single("file"), async (req, res) => {
 // Fetch all reports for a patient
 router.get("/:patientId", async (req, res) => {
   try {
-    const reports = await Report.find({ patientId: req.params.patientId }).sort({ createdAt: -1 });
+    const reports = await Report.find({ patientId: req.params.patientId }).sort(
+      { createdAt: -1 }
+    );
     res.json({ success: true, reports });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -62,21 +64,23 @@ router.delete("/:id", async (req, res) => {
     // Try with the exact public_id first, then without folder prefix
     const publicIdsToTry = [
       report.cloudinaryId, // PDF-DOCS-IMGS/bkvjkz60cmnfdjjao0ii
-      report.cloudinaryId.split('/').pop(), // Just: bkvjkz60cmnfdjjao0ii
+      report.cloudinaryId.split("/").pop(), // Just: bkvjkz60cmnfdjjao0ii
     ];
 
     let deletionSuccessful = false;
 
     for (const publicId of publicIdsToTry) {
       try {
-        console.log(`Trying to delete publicId: "${publicId}" with resource_type: "image"`);
-        
-        const cloudinaryResult = await cloudinary.uploader.destroy(publicId, { 
-          resource_type: "image" 
+        console.log(
+          `Trying to delete publicId: "${publicId}" with resource_type: "image"`
+        );
+
+        const cloudinaryResult = await cloudinary.uploader.destroy(publicId, {
+          resource_type: "image",
         });
-        
+
         console.log(`Result for "${publicId}":`, cloudinaryResult);
-        
+
         if (cloudinaryResult.result === "ok") {
           console.log(`✅ Successfully deleted with publicId: "${publicId}"`);
           deletionSuccessful = true;
@@ -113,13 +117,15 @@ router.get("/download/:id", async (req, res) => {
 
     // For PDFs and documents, force download by modifying the Cloudinary URL
     let downloadUrl = report.fileUrl;
-    
+
     // Add Cloudinary transformations to force download
-    if (downloadUrl.includes('/image/upload/')) {
+    if (downloadUrl.includes("/image/upload/")) {
       // Replace the upload part to add download flag
       downloadUrl = downloadUrl.replace(
-        '/image/upload/', 
-        '/image/upload/fl_attachment:' + encodeURIComponent(report.filename) + '/'
+        "/image/upload/",
+        "/image/upload/fl_attachment:" +
+          encodeURIComponent(report.filename) +
+          "/"
       );
     }
 
@@ -127,9 +133,15 @@ router.get("/download/:id", async (req, res) => {
     console.log("Download URL:", downloadUrl);
 
     // Set proper headers for download
-    res.setHeader('Content-Disposition', `attachment; filename="${report.filename}"`);
-    res.setHeader('Content-Type', report.contentType || 'application/octet-stream');
-    
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${report.filename}"`
+    );
+    res.setHeader(
+      "Content-Type",
+      report.contentType || "application/octet-stream"
+    );
+
     // Redirect to the modified URL
     res.redirect(downloadUrl);
   } catch (err) {

@@ -16,8 +16,8 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
-    folder: "PDF-DOCS-IMGS",   // folder in Cloudinary
-    resource_type: "auto",     // allows images, PDFs, docs
+    folder: "PDF-DOCS-IMGS", // folder in Cloudinary
+    resource_type: "auto", // allows images, PDFs, docs
   },
 });
 
