@@ -17,6 +17,7 @@ const MedicalReportUpload = ({ patientId }) => {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [previewType, setPreviewType] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Base URL for API calls
   const API_BASE_URL = "http://localhost:5000";
@@ -306,6 +307,8 @@ const MedicalReportUpload = ({ patientId }) => {
     <div className="report-upload-container">
       <h1>Medical Reports</h1>
 
+
+
       <div className="upload-section">
         <div
           className={`drop-zone${isDragging ? " dragging" : ""}`}
@@ -391,6 +394,18 @@ const MedicalReportUpload = ({ patientId }) => {
           </label>
         </div>
       </div>
+      {/* Premium Search Field - now below controls */}
+      <div className="search-bar-container below-controls">
+        <input
+          type="text"
+          className="search-bar"
+          placeholder="Search by document name..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          aria-label="Search medical reports by name"
+          disabled={loading}
+        />
+      </div>
 
       {selectedFile &&
         (Array.isArray(selectedFile) ? (
@@ -418,6 +433,13 @@ const MedicalReportUpload = ({ patientId }) => {
         (() => {
           // Filter and sort reports
           let filteredReports = reports;
+          // Filter by search query
+          if (searchQuery.trim()) {
+            filteredReports = filteredReports.filter((r) =>
+              r.filename.toLowerCase().includes(searchQuery.trim().toLowerCase())
+            );
+          }
+          // Filter by file type
           if (filterType) {
             filteredReports = filteredReports.filter((r) => {
               const ext = r.filename.split(".").pop().toLowerCase();
