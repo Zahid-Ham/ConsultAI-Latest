@@ -22,6 +22,10 @@ const ChatbotPage = () => {
           }
         );
         setChatHistory(response.data.history);
+        // If no chat history, automatically create a new chat session
+        if (response.data.history.length === 0) {
+          handleNewChat();
+        }
       } catch (error) {
         console.error("Failed to fetch chat history:", error);
       }
@@ -52,8 +56,10 @@ const ChatbotPage = () => {
       const newChat = chatRes.data.chat;
       setChatHistory((prev) => [newChat, ...prev]);
       setSelectedChat(newChat);
+      return newChat;
     } catch (error) {
       console.error("Failed to create new chat:", error);
+      return null;
     }
   };
 
@@ -91,7 +97,7 @@ const ChatbotPage = () => {
         selectedChat={selectedChat}
         onDeleteChat={handleDeleteChat}
       />
-      <ChatWindow selectedChat={selectedChat} onChatUpdate={handleChatUpdate} />
+  <ChatWindow selectedChat={selectedChat} onNewChat={handleNewChat} onChatUpdate={handleChatUpdate} />
     </div>
   );
 };

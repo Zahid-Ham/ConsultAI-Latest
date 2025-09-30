@@ -36,7 +36,7 @@ export async function analyzeSymptoms(req, res) {
     const systemPrompt = {
       role: "system",
       content:
-        "You are a medical AI assistant. Give concise, direct answers to medical questions. After each answer, naturally ask a relevant question to better understand the user's situation and keep the conversation going. Do not diagnose or prescribe medicine. If the situation is urgent or serious, you may suggest consulting a doctor, but do not repeat a disclaimer every time. Do not explicitly say 'follow-up question:' or include any instructional/meta text like '[INST]' or 'What are some ways we can help you get more information from the user?'. Only respond as the assistant in a natural, conversational way.",
+        "You are a medical AI assistant. Give direct answers to medical questions. After each answer, naturally ask a relevant question to better understand the user's situation and keep the conversation going. Do not prescribe medicine. If the situation is urgent or serious, you may suggest consulting a doctor, but do not repeat a disclaimer every time. Do not explicitly say 'follow-up question:' or include any instructional/meta text like '[INST]' or 'What are some ways we can help you get more information from the user?'. Only respond as the assistant in a natural, conversational way.",
     };
 
     // For a new tab (no previous messages), only send the current user message
@@ -63,10 +63,18 @@ export async function analyzeSymptoms(req, res) {
 
     const aiReply = response.message.content;
 
-    chatSession.messages.push({ sender: "ai", text: aiReply });
+    // --- NEW: Filter the AI's reply to remove text in parentheses ---
+    const regex = /\s*\([^)]*\)\s*/g;
+    const filteredReply = aiReply.replace(regex, ' ').trim();
+    // ----------------------------------------------------------------
+
+    // UPDATED: Save the filtered reply to the database for consistency
+    chatSession.messages.push({ sender: "ai", text: filteredReply });
     await chatSession.save();
 
-    res.status(200).json({ reply: aiReply, chatId: chatSession._id });
+    // UPDATED: Send the filtered reply to the user
+    res.status(200).json({ reply: filteredReply, chatId: chatSession._id });
+
   } catch (error) {
     console.error("Error with symptom analysis:", error);
     res
@@ -133,10 +141,18 @@ export async function analyzeReport(req, res) {
 
     const aiReply = response.message.content;
 
-    chatSession.messages.push({ sender: "ai", text: aiReply });
+    // --- NEW: Filter the AI's reply to remove text in parentheses ---
+    const regex = /\s*\([^)]*\)\s*/g;
+    const filteredReply = aiReply.replace(regex, ' ').trim();
+    // ----------------------------------------------------------------
+
+    // UPDATED: Save the filtered reply to the database for consistency
+    chatSession.messages.push({ sender: "ai", text: filteredReply });
     await chatSession.save();
 
-    res.status(200).json({ reply: aiReply, chatId: chatSession._id });
+    // UPDATED: Send the filtered reply to the user
+    res.status(200).json({ reply: filteredReply, chatId: chatSession._id });
+    
   } catch (error) {
     console.error("Error with report analysis:", error);
     res.status(500).json({ error: "Failed to analyze the report." });

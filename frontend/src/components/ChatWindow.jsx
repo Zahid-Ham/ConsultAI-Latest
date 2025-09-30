@@ -42,10 +42,60 @@ const ChatWindow = ({ selectedChat, onNewChat, onExitChat, onChatUpdate }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (input.trim() === "") return;
 
+    // If no chat is selected, create a new chat session first
+
+    if (!selectedChat && typeof onNewChat === "function") {
+      // Show user's message immediately
+      const userMessage = { sender: "user", text: input };
+      setMessages([userMessage]);
+      setInput("");
+      setLoading(true);
+      try {
+        // onNewChat should return a Promise that resolves to the new chat object
+        const newChat = await onNewChat();
+        if (newChat) {
+          if (onChatUpdate) onChatUpdate(newChat);
+          // Now send the message to the new chat
+          const token = localStorage.getItem("token");
+          const response = await axios.post(
+            "http://localhost:5000/api/chatbot/symptom-analysis",
+            { message: userMessage.text, chatId: newChat._id },
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          // Fetch updated chat from backend
+          const chatRes = await axios.get(
+            `http://localhost:5000/api/chatbot/history/${newChat._id}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          const updatedChat = chatRes.data.chat;
+          setMessages(updatedChat.messages);
+          if (onChatUpdate) onChatUpdate(updatedChat);
+        }
+      } catch (error) {
+        console.error("Error creating new chat and sending message:", error);
+        setMessages((currentMessages) => [
+          ...currentMessages,
+          {
+            sender: "ai",
+            text: "Sorry, something went wrong. Please try again.",
+          },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // If chat is selected, proceed as before
     const userMessage = { sender: "user", text: input };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
