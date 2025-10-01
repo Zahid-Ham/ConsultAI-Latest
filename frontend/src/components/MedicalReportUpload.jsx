@@ -307,8 +307,6 @@ const MedicalReportUpload = ({ patientId }) => {
     <div className="report-upload-container">
       <h1>Medical Reports</h1>
 
-
-
       <div className="upload-section">
         <div
           className={`drop-zone${isDragging ? " dragging" : ""}`}
@@ -401,7 +399,7 @@ const MedicalReportUpload = ({ patientId }) => {
           className="search-bar"
           placeholder="Search by document name..."
           value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
+          onChange={(e) => setSearchQuery(e.target.value)}
           aria-label="Search medical reports by name"
           disabled={loading}
         />
@@ -436,7 +434,9 @@ const MedicalReportUpload = ({ patientId }) => {
           // Filter by search query
           if (searchQuery.trim()) {
             filteredReports = filteredReports.filter((r) =>
-              r.filename.toLowerCase().includes(searchQuery.trim().toLowerCase())
+              r.filename
+                .toLowerCase()
+                .includes(searchQuery.trim().toLowerCase())
             );
           }
           // Filter by file type

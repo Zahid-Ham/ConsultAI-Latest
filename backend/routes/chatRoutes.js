@@ -6,14 +6,12 @@ const router = express.Router();
 
 const {
   createConversation,
-
   getConversations,
-
   getMessages,
-
   sendMessage,
-
   deleteMessage, // Import the new function
+  sendFileMessage,
+  sendCloudinaryMessage,
 } = require("../controllers/chatController");
 
 const { authenticateToken } = require("../middleware/auth");
@@ -31,5 +29,7 @@ router.post("/messages", authenticateToken, sendMessage);
 // New route for deleting a message
 
 router.delete("/messages/:messageId", authenticateToken, deleteMessage);
+router.post("/messages/file", authenticateToken, sendFileMessage);
+router.post("/messages/cloudinary", authenticateToken, sendCloudinaryMessage);
 
 module.exports = router;

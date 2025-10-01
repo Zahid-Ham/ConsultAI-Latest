@@ -1,3 +1,291 @@
+.premium-file-card {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(90deg, #f3f3ff 0%, #e6e6fa 100%);
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(75,58,230,0.08);
+  padding: 16px 20px;
+  margin: 8px 0;
+  min-width: 260px;
+  max-width: 420px;
+}
+.premium-file-card .file-message-icon {
+  margin-right: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(75,58,230,0.07);
+}
+.premium-file-card .file-message-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.premium-file-card .file-message-name {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #4B3AE6;
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+.premium-file-card .file-message-download-btn {
+  background: #4B3AE6;
+  color: #fff;
+  border-radius: 6px;
+  padding: 6px 16px;
+  margin-top: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(75,58,230,0.12);
+  transition: background 0.2s;
+}
+.premium-file-card .file-message-download-btn:hover {
+  background: #3726b6;
+}
+/* WhatsApp-like file message card styles */
+.file-message-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(120deg, #f3f0ff 0%, #ede9fe 100%);
+  border-radius: 12px;
+  padding: 10px 16px;
+  box-shadow: 0 2px 8px rgba(80, 60, 180, 0.09);
+  margin: 2px 0;
+}
+.file-message-icon {
+  font-size: 2.2rem;
+  color: #7c3aed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+  min-height: 60px;
+}
+.file-message-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.file-message-name {
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: #5b21b6;
+  margin-bottom: 2px;
+}
+.file-message-download-btn {
+  padding: 6px 18px;
+  background: linear-gradient(90deg, #7c3aed 0%, #a78bfa 100%);
+  color: #fff;
+  font-weight: 500;
+  border: none;
+  border-radius: 7px;
+  font-size: 1rem;
+  text-decoration: none;
+  box-shadow: 0 1px 4px rgba(80, 60, 180, 0.09);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  display: inline-block;
+}
+.file-message-download-btn:hover {
+  background: linear-gradient(90deg, #a78bfa 0%, #7c3aed 100%);
+  box-shadow: 0 4px 16px rgba(80, 60, 180, 0.13);
+}
+
+@media (prefers-color-scheme: dark) {
+  .file-message-card {
+    background: linear-gradient(120deg, #232946 0%, #1a1a2e 100%);
+    color: #e0e7ff;
+    box-shadow: 0 2px 8px rgba(80, 60, 180, 0.18);
+  }
+  .file-message-name {
+    color: #a78bfa;
+  }
+  .file-message-download-btn {
+    background: linear-gradient(90deg, #7c3aed 0%, #a78bfa 100%);
+    color: #fff;
+  }
+}
+/* Premium Upload Modal Styles */
+.upload-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(44, 44, 84, 0.18);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.upload-modal {
+  background: linear-gradient(120deg, #f3f0ff 0%, #ede9fe 100%);
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(80, 60, 180, 0.18);
+  padding: 32px 28px 24px 28px;
+  min-width: 340px;
+  max-width: 420px;
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.upload-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.upload-modal-header h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #5b21b6;
+}
+.close-modal-btn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #7c3aed;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.close-modal-btn:hover {
+  color: #a78bfa;
+}
+.upload-modal-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.upload-modal-tabs button {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  border-radius: 8px;
+  background: #ede9fe;
+  color: #5b21b6;
+  font-weight: 600;
+  font-size: 1.08rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s, color 0.2s;
+}
+.upload-modal-tabs button.active {
+  background: linear-gradient(90deg, #7c3aed 0%, #a78bfa 100%);
+  color: #fff;
+}
+.upload-modal-content {
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.upload-computer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+.upload-file-input {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #a78bfa;
+  background: #f3f0ff;
+  color: #5b21b6;
+  font-size: 1rem;
+  font-weight: 500;
+}
+.upload-cloud-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cloud-file-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px 0;
+  max-height: 120px;
+  overflow-y: auto;
+}
+.cloud-file-list li {
+  padding: 8px 12px;
+  border-radius: 7px;
+  background: #ede9fe;
+  color: #5b21b6;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.cloud-file-list li.selected {
+  background: linear-gradient(90deg, #7c3aed 0%, #a78bfa 100%);
+  color: #fff;
+}
+.select-cloud-btn {
+  padding: 8px 22px;
+  background: linear-gradient(90deg, #7c3aed 0%, #a78bfa 100%);
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.08rem;
+  box-shadow: 0 2px 8px rgba(80, 60, 180, 0.09);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.select-cloud-btn:disabled {
+  background: #ddd;
+  color: #aaa;
+  cursor: not-allowed;
+}
+.select-cloud-btn:not(:disabled):hover {
+  background: linear-gradient(90deg, #a78bfa 0%, #7c3aed 100%);
+  box-shadow: 0 4px 16px rgba(80, 60, 180, 0.13);
+}
+
+@media (prefers-color-scheme: dark) {
+  .upload-modal {
+    background: linear-gradient(120deg, #232946 0%, #1a1a2e 100%);
+    color: #e0e7ff;
+    box-shadow: 0 8px 32px rgba(80, 60, 180, 0.28);
+  }
+  .upload-modal-header h2 {
+    color: #a78bfa;
+  }
+  .upload-modal-tabs button {
+    background: #232946;
+    color: #a78bfa;
+  }
+  .upload-modal-tabs button.active {
+    background: linear-gradient(90deg, #7c3aed 0%, #a78bfa 100%);
+    color: #fff;
+  }
+  .upload-file-input {
+    background: #232946;
+    color: #a78bfa;
+    border-color: #7c3aed;
+  }
+  .cloud-file-list li {
+    background: #232946;
+    color: #a78bfa;
+  }
+  .cloud-file-list li.selected {
+    background: linear-gradient(90deg, #7c3aed 0%, #a78bfa 100%);
+    color: #fff;
+  }
+  .select-cloud-btn {
+    background: linear-gradient(90deg, #7c3aed 0%, #a78bfa 100%);
+    color: #fff;
+  }
+}
 /*
  * File: frontend/src/assets/css/ChatStyles.css
  * Description: Styles for the Doctor-Patient Chat Application.

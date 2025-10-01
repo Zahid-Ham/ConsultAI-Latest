@@ -252,14 +252,145 @@ const deleteMessage = async (req, res) => {
   }
 };
 
+const multer = require("multer");
+const cloudinary = require("../cloudinary");
+const upload = multer({ storage: multer.memoryStorage() });
+
+// Send a file message (upload from computer)
+const sendFileMessage = async (req, res) => {
+  try {
+    upload.single("file")(req, res, async function (err) {
+      if (err || !req.file) {
+        return res
+          .status(400)
+          .json({ success: false, message: "File upload failed." });
+      }
+      // Upload buffer to Cloudinary
+      const result = await cloudinary.uploader.upload_stream(
+        {
+          resource_type: "auto",
+          public_id: undefined,
+          filename_override: req.file.originalname,
+          use_filename: true,
+          unique_filename: false,
+        },
+        async (error, result) => {
+          if (error || !result) {
+            return res
+              .status(500)
+              .json({
+                success: false,
+                message: "Cloudinary upload failed",
+                error,
+              });
+          }
+          // Create chat message with file link and original filename
+          const message = new Message({
+            conversationId: req.body.conversationId,
+            sender: req.body.senderId,
+            text: "",
+            fileUrl: result.secure_url,
+            fileType: result.resource_type,
+            fileName: req.file.originalname,
+          });
+          await message.save();
+          await message.populate("sender", "name");
+          // Emit via socket
+          const conversation = await Conversation.findById(
+            req.body.conversationId
+          );
+          const io = req.app.get("io");
+          if (conversation) {
+            conversation.participants.forEach((p) => {
+              io.to(p.toString()).emit("receiveMessage", message);
+            });
+          }
+          res
+            .status(201)
+            .json({
+              success: true,
+              message: "File message sent",
+              data: message,
+            });
+        }
+      );
+      // Pipe buffer to Cloudinary
+      const stream = require("stream");
+      const bufferStream = new stream.PassThrough();
+      bufferStream.end(req.file.buffer);
+      bufferStream.pipe(result);
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "File upload failed",
+        error: error.message,
+      });
+  }
+};
+
+// Send a Cloudinary file message (share from cloud)
+const sendCloudinaryMessage = async (req, res) => {
+  try {
+    const { publicId, conversationId, senderId, fileUrl, fileName, fileType } =
+      req.body;
+    // Use provided file details if available, else fetch from Cloudinary
+    let url = fileUrl,
+      name = fileName,
+      type = fileType;
+    if (!url || !name || !type) {
+      const result = await cloudinary.api.resource(publicId, {
+        resource_type: "auto",
+      });
+      url = result.secure_url;
+      name = result.original_filename;
+      type = result.resource_type;
+    }
+    // Create chat message with file link
+    const message = new Message({
+      conversationId,
+      sender: senderId,
+      text: "",
+      fileUrl: url,
+      fileType: type,
+      fileName: name,
+    });
+    await message.save();
+    await message.populate("sender", "name");
+    // Emit via socket
+    const conversation = await Conversation.findById(conversationId);
+    const io = req.app.get("io");
+    if (conversation) {
+      conversation.participants.forEach((p) => {
+        io.to(p.toString()).emit("receiveMessage", message);
+      });
+    }
+    res
+      .status(201)
+      .json({
+        success: true,
+        message: "Cloudinary file shared",
+        data: message,
+      });
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Cloudinary file share failed",
+        error: error.message,
+      });
+  }
+};
+
 module.exports = {
   createConversation,
-
   getConversations,
-
   getMessages,
-
   sendMessage,
-
-  deleteMessage, // Make sure to export the new function
+  deleteMessage,
+  sendFileMessage,
+  sendCloudinaryMessage,
 };

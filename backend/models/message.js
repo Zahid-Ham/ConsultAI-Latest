@@ -1,30 +1,44 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const messageSchema = new mongoose.Schema({
-  conversationId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Conversation',
-    required: true,
+const messageSchema = new mongoose.Schema(
+  {
+    conversationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Conversation",
+      required: true,
+    },
+    sender: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    text: {
+      type: String,
+      required: function () {
+        // Only require text if there is no file
+        return !this.fileUrl && !this.file;
+      },
+    },
+    isRead: {
+      type: Boolean,
+      default: false,
+    },
+    fileUrl: {
+      type: String, // URL to the uploaded file
+      required: false,
+    },
+    fileType: {
+      type: String,
+      required: false,
+    },
+    fileName: {
+      type: String,
+      required: false,
+    },
   },
-  sender: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  text: {
-    type: String,
-    required: true,
-  },
-  isRead: {
-    type: Boolean,
-    default: false,
-  },
-  file: {
-    type: String, // URL to the uploaded file
-    required: false,
-  },
-}, { timestamps: true });
+  { timestamps: true }
+);
 
-const Message = mongoose.model('Message', messageSchema);
+const Message = mongoose.model("Message", messageSchema);
 
 module.exports = Message;

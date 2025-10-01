@@ -42,7 +42,6 @@ const ChatWindow = ({ selectedChat, onNewChat, onExitChat, onChatUpdate }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (input.trim() === "") return;

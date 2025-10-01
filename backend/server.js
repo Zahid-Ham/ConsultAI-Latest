@@ -16,6 +16,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const chatbotRoutes = require("./routes/chatbotRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const reportRoutes = require("./routes/reportRoutes");
+const cloudinaryRoutes = require("./routes/cloudinaryRoutes");
 
 const { authenticateToken, authorizeRole } = require("./middleware/auth");
 
@@ -76,6 +77,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/cloudinary", cloudinaryRoutes);
 
 // Socket.IO connection handling
 io.on("connection", (socket) => {

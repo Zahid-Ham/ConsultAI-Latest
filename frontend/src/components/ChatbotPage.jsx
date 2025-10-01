@@ -97,7 +97,11 @@ const ChatbotPage = () => {
         selectedChat={selectedChat}
         onDeleteChat={handleDeleteChat}
       />
-  <ChatWindow selectedChat={selectedChat} onNewChat={handleNewChat} onChatUpdate={handleChatUpdate} />
+      <ChatWindow
+        selectedChat={selectedChat}
+        onNewChat={handleNewChat}
+        onChatUpdate={handleChatUpdate}
+      />
     </div>
   );
 };
