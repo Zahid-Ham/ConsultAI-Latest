@@ -30,7 +30,7 @@ const Home = () => {
                 <button className="explore">Sign In</button>
               </Link>
               <Link to="/register">
-                <button className="explore" style={{ background: "#23272f", color: "#ffd700" }}>Create Account</button>
+                <button className="explore" style={{ background: "#7b97cfff", color: "#ffd700" }}>Create Account</button>
               </Link>
             </div>
           )}
