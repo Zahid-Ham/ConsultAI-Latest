@@ -17,6 +17,7 @@ const chatbotRoutes = require("./routes/chatbotRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const cloudinaryRoutes = require("./routes/cloudinaryRoutes");
+const userRoutes = require("./routes/userRoutes"); // <-- IMPORTED new user routes
 
 const { authenticateToken, authorizeRole } = require("./middleware/auth");
 
@@ -78,37 +79,20 @@ app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/cloudinary", cloudinaryRoutes);
+app.use("/api/users", userRoutes); // <-- ADDED new user routes
 
 // Socket.IO connection handling
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
-  // This is the correct way to handle user registration to a private room
   socket.on("register", (userId) => {
     socket.join(userId);
     console.log(`User ${userId} registered and joined their personal room.`);
   });
 
-  // NOTE: The 'sendMessage' socket event handler is removed from here.
-  // The chatController now handles saving the message to the database
-  // and then uses `io.to(recipientId).emit(...)` to send it in real-time.
-  // This ensures that the message is always saved before being broadcasted.
-
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
-});
-
-// Protected route example - Get current user profile
-app.get("/api/profile", authenticateToken, async (req, res) => {
-  try {
-    res.json({
-      success: true,
-      data: req.user,
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
 });
 
 // Admin only route example

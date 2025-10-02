@@ -16,7 +16,7 @@ const Home = () => {
           <h1 className="welcome-title">
             Welcome to <span className="consultai-accent">ConsultAI</span>
           </h1>
-          <p className="welcome-subtitle">
+          <p className="welcome-subtitle" style={{color:"#ffff"}}>
             Your trusted healthcare consultation platform
           </p>
 

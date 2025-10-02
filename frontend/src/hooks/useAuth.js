@@ -114,6 +114,7 @@ export const useAuth = () => {
 
   return {
     user,
+    setUser, // <-- This is the only addition to this object
     loading,
     error,
     login,
@@ -125,4 +126,4 @@ export const useAuth = () => {
     isPatient,
     isAuthenticated,
   };
-}; 
+};

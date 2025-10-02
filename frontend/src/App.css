@@ -1249,3 +1249,85 @@ body {
     padding: 2rem;
   }
 }
+
+/* Add this to the bottom of frontend/src/App.css */
+
+/* Profile Dropdown Styling */
+.profile-dropdown-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-left: 1rem;
+}
+
+.profile-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  font-size: 1rem;
+}
+
+.welcome-text {
+  font-weight: 500;
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: 150%; /* Position below the button */
+  right: 0;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  width: 220px;
+  z-index: 1000;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-dropdown-header {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  background-color: #f8f9fa;
+}
+
+.profile-dropdown-header strong {
+  display: block;
+  font-size: 1rem;
+  color: #333;
+}
+
+.profile-dropdown-header span {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.profile-dropdown-item {
+  padding: 12px 15px;
+  text-align: left;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #333;
+  text-decoration: none; /* For the Link component */
+  display: block; /* For the Link component */
+}
+
+.profile-dropdown-item:hover {
+  background-color: #f1f1f1;
+}
+
+.profile-dropdown-item.logout-btn {
+  color: #dc3545; /* Red color for logout */
+}
+
+.profile-dropdown-item.logout-btn:hover {
+  background-color: #f8d7da;
+}

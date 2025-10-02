@@ -1,17 +1,31 @@
 // frontend/src/components/Navigation.jsx
 
-import React, { useState, useEffect } from "react";
-import { FaMoon, FaCommentDots, FaUserMd } from "react-icons/fa";
+import React, { useState, useEffect, useRef } from "react";
+import { FaMoon, FaCommentDots, FaUserMd, FaUserCircle } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import { useAuthContext } from "../contexts/AuthContext";
+import './Navigation.css'; // <-- Import the new CSS file
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const location = useLocation();
   const { user, isAuthenticated, isAdmin, logout } = useAuthContext();
+  const dropdownRef = useRef(null);
 
-  // Set initial dark mode state from body class
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownRef]);
+
   useEffect(() => {
     const bodyHasDarkClass = document.body.classList.contains("dark");
     setDarkMode(bodyHasDarkClass);
@@ -24,9 +38,9 @@ const Navigation = () => {
   const handleLogout = () => {
     logout();
     setIsMenuOpen(false);
+    setIsDropdownOpen(false);
   };
 
-  // Toggle dark mode and add/remove dark class from body
   const handleDarkModeToggle = () => {
     setDarkMode((prev) => {
       const newMode = !prev;
@@ -39,7 +53,6 @@ const Navigation = () => {
     });
   };
 
-  // Check if the current path is the AI chat page
   const isAiChatPage = location.pathname === "/chat/ai";
 
   return (
@@ -49,7 +62,6 @@ const Navigation = () => {
           <h2>ConsultAI</h2>
         </Link>
 
-        {/* Dark mode toggle button */}
         <button
           className={`dark-mode-toggle${darkMode ? " active" : ""}`}
           onClick={handleDarkModeToggle}
@@ -133,11 +145,49 @@ const Navigation = () => {
                 </Link>
               )}
 
-              <div className="nav-user">
-                <span className="user-name">Welcome, {user?.name}</span>
-                <button className="nav-link logout-btn" onClick={handleLogout}>
-                  Logout
+              <div className="profile-dropdown-container" ref={dropdownRef}>
+                <button
+                  className="profile-icon-btn"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                >
+                  <span className="welcome-text">Welcome, {user?.name}</span>
+                  
+                  {/* ===== THIS IS THE CHANGE ===== */}
+                  {user?.profilePicture?.url ? (
+                    <img 
+                      src={user.profilePicture.url} 
+                      alt="Profile" 
+                      className="nav-profile-img" 
+                      onError={(e) => { e.target.onerror = null; e.target.src='https://i.ibb.co/6r114Bw/user-default.png'}} // Fallback for broken image links
+                    />
+                  ) : (
+                    <FaUserCircle size={32} /> // Fallback icon
+                  )}
+                  {/* ===== END OF CHANGE ===== */}
+
                 </button>
+
+                {isDropdownOpen && (
+                  <div className="profile-dropdown">
+                    <div className="profile-dropdown-header">
+                      <strong>{user?.name}</strong>
+                      <span>{user?.email}</span>
+                    </div>
+                    <Link
+                      to="/profile"
+                      className="profile-dropdown-item"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      View Profile
+                    </Link>
+                    <button
+                      className="profile-dropdown-item logout-btn"
+                      onClick={handleLogout}
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
               </div>
             </>
           )}
