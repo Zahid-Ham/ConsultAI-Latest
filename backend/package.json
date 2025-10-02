@@ -20,7 +20,7 @@
     "google-auth-library": "^10.3.0",
     "i": "^0.3.7",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.0.3",
+    "mongoose": "^8.18.3",
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^4.0.0",
     "ollama": "^0.5.17",

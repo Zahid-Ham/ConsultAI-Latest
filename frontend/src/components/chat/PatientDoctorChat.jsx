@@ -8,7 +8,7 @@ import "../../assets/css/ChatStyles.css";
 import "../../assets/css/ChatWindow.css"; // Make sure you create and link this CSS file
 import { FaPaperPlane, FaTrash, FaUpload, FaCloud } from "react-icons/fa";
 
-// Premium Upload Modal Dialog
+// Premium Upload Modal Dialog 
 const UploadFileDialog = ({
   open,
   onClose,
@@ -118,18 +118,24 @@ const PatientDoctorChat = () => {
       setLoadingCloud(true);
       setErrorCloud(null);
       const token = localStorage.getItem("token");
-      axios
-        .get("http://localhost:5000/api/cloudinary/list", {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        })
-        .then((res) => {
-          setCloudFiles(res.data.files || []);
-          setLoadingCloud(false);
-        })
-        .catch((err) => {
-          setErrorCloud("Failed to load cloud files.");
-          setLoadingCloud(false);
-        });
+      // Use new endpoint to fetch only files uploaded by the current user
+      if (user && user._id) {
+        axios
+          .get(`http://localhost:5000/api/cloudinary/user/${user._id}`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          })
+          .then((res) => {
+            setCloudFiles(res.data.files || []);
+            setLoadingCloud(false);
+          })
+          .catch((err) => {
+            setErrorCloud("Failed to load cloud files.");
+            setLoadingCloud(false);
+          });
+      } else {
+        setCloudFiles([]);
+        setLoadingCloud(false);
+      }
     }
   }, [uploadDialogOpen, uploadTab]);
 
