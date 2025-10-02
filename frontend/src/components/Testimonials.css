@@ -1,0 +1,99 @@
+/* Light Mode Styles */
+.testimonials-section {
+  padding: 60px 20px;
+  background-color: #f8f9fa; /* Light grey background */
+  text-align: center;
+  transition: background-color 0.3s;
+}
+
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #343a40; /* Dark grey text */
+  margin-bottom: 40px;
+  transition: color 0.3s;
+}
+
+.testimonials-list {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.testimonial-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 30px;
+  max-width: 350px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.testimonial-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin-top: -70px; /* Pulls the avatar up */
+  margin-bottom: 20px;
+}
+
+.testimonial-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.testimonial-text {
+  font-size: 1rem;
+  font-style: italic;
+  color: #6c757d; /* Medium grey for the quote */
+  margin-bottom: 20px;
+  transition: color 0.3s;
+}
+
+.testimonial-name {
+  font-weight: 700;
+  color: #007bff; /* Primary accent color */
+}
+
+.testimonial-role {
+  color: #6c757d;
+  opacity: 0.8;
+  font-size: 0.9rem;
+  transition: color 0.3s;
+}
+
+
+/* ================================= */
+/* DARK MODE STYLES                  */
+/* ================================= */
+
+body.dark .testimonials-section {
+  background-color: #1a202c; /* Very dark blue/grey */
+}
+
+body.dark .section-title {
+  color: #e2e8f0; /* Light grey text */
+}
+
+body.dark .testimonial-card {
+  background-color: #2d3748; /* Dark grey card */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+body.dark .testimonial-text {
+  color: #a0aec0; /* Lighter grey for quote */
+}
+
+body.dark .testimonial-name {
+  color: #4299e1; /* A nice light blue for dark mode accent */
+}
+
+body.dark .testimonial-role {
+  color: #a0aec0;
+}
