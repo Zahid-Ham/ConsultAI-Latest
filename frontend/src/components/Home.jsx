@@ -3,7 +3,11 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useAuthContext } from "../contexts/AuthContext";
 import FeatureRing3D from "./landing/FeatureRing3D";
-import "./landing/featureRing3D.css"; // ensure CSS loaded
+import "./landing/featureRing3D.css";
+import Testimonials from "./Testimonials";
+import FAQ from "./FAQ";
+import Footer from "./Footer";
+import "./LandingTheme.css";
 
 const Home = () => {
   const { isAuthenticated, user, isDoctor, isPatient } = useAuthContext();
@@ -45,10 +49,12 @@ const Home = () => {
       {/* 3D carousel */}
       <main>
         <FeatureRing3D />
+          <Testimonials />
+          <FAQ />
       </main>
 
       {/* optional footer spacing */}
-      <div style={{ height: 40 }} />
+        <Footer />
     </div>
   );
 };
