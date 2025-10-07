@@ -3,18 +3,20 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm'; // --- 1. IMPORT THE GFM PLUGIN ---
 import {
   FaUser,
   FaRobot,
-  FaUpload,
-  FaPaperPlane,
   FaFileAlt,
   FaTimes,
   FaStethoscope,
 } from "react-icons/fa";
 import "./ChatbotLayout.css";
+import ReportDisplay from './ReportDisplay';
+import './ReportDisplay.css';
 
-const ChatWindow = ({ selectedChat, onNewChat, onExitChat, onChatUpdate }) => {
+const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
   const navigate = useNavigate();
   // Disable scroll for chat/ai page only
   useEffect(() => {
@@ -44,10 +46,16 @@ const ChatWindow = ({ selectedChat, onNewChat, onExitChat, onChatUpdate }) => {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (input.trim() === "") return;
+    if (input.trim() === "" && !file) return;
+
+    // If we have a file attached, process it with the text message
+    if (file) {
+      await handleFileUpload(input.trim());
+      setInput("");
+      return;
+    }
 
     // If no chat is selected, create a new chat session first
-
     if (!selectedChat && typeof onNewChat === "function") {
       // Show user's message immediately
       const userMessage = { sender: "user", text: input };
@@ -61,7 +69,7 @@ const ChatWindow = ({ selectedChat, onNewChat, onExitChat, onChatUpdate }) => {
           if (onChatUpdate) onChatUpdate(newChat);
           // Now send the message to the new chat
           const token = localStorage.getItem("token");
-          const response = await axios.post(
+          await axios.post(
             "http://localhost:5000/api/chatbot/symptom-analysis",
             { message: userMessage.text, chatId: newChat._id },
             {
@@ -96,14 +104,13 @@ const ChatWindow = ({ selectedChat, onNewChat, onExitChat, onChatUpdate }) => {
 
     // If chat is selected, proceed as before
     const userMessage = { sender: "user", text: input };
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
+    setMessages(prev => [...prev, userMessage]);
     setInput("");
     setLoading(true);
 
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post(
+      await axios.post(
         "http://localhost:5000/api/chatbot/symptom-analysis",
         { message: input, chatId: selectedChat ? selectedChat._id : null },
         {
@@ -120,20 +127,7 @@ const ChatWindow = ({ selectedChat, onNewChat, onExitChat, onChatUpdate }) => {
         );
         const updatedChat = chatRes.data.chat;
         setMessages(updatedChat.messages);
-        // Update chat title after first user message
-        const firstUserMsg = updatedChat.messages.find(
-          (m) => m.sender === "user"
-        );
-        if (firstUserMsg) {
-          updatedChat.title =
-            firstUserMsg.text.substring(0, 30) +
-            (firstUserMsg.text.length > 30 ? "..." : "");
-        }
         if (onChatUpdate) onChatUpdate(updatedChat);
-      } else {
-        // Fallback: just add AI message
-        const aiMessage = { sender: "ai", text: response.data.reply };
-        setMessages((currentMessages) => [...currentMessages, aiMessage]);
       }
     } catch (error) {
       console.error("Error sending message to AI:", error);
@@ -153,19 +147,30 @@ const ChatWindow = ({ selectedChat, onNewChat, onExitChat, onChatUpdate }) => {
     setFile(e.target.files[0]);
   };
 
-  const handleFileUpload = async () => {
+  // --- THIS FUNCTION HAS BEEN CORRECTED TO UPDATE THE CHAT TITLE ---
+  const handleFileUpload = async (userMessage = "") => {
     if (!file) return;
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("chatId", selectedChat ? selectedChat._id : null);
+    if (selectedChat && selectedChat._id) {
+        formData.append("chatId", selectedChat._id);
+    } else {
+        // Ensure chatId is not 'null' or 'undefined' when no chat is selected
+        formData.append("chatId", ''); 
+    }
+    formData.append("userMessage", userMessage);
 
-    const userMessage = {
+    const displayMessage = userMessage
+      ? `${userMessage} [Attached file: ${file.name}]`
+      : `File attached: ${file.name}`;
+      
+    const userMessageObj = {
       sender: "user",
-      text: `Analyzing file: ${file.name}...`,
+      text: displayMessage,
     };
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
+    
+    setMessages(prevMessages => [...prevMessages, userMessageObj]);
     setLoading(true);
     setFile(null);
     if (fileInputRef.current) {
@@ -184,20 +189,35 @@ const ChatWindow = ({ selectedChat, onNewChat, onExitChat, onChatUpdate }) => {
           },
         }
       );
-      const aiMessage = { sender: "ai", text: response.data.reply };
-      setMessages((currentMessages) => [...currentMessages, aiMessage]);
+
+      const { chatId } = response.data;
+
+      const chatRes = await axios.get(
+        `http://localhost:5000/api/chatbot/history/${chatId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const updatedChat = chatRes.data.chat;
+
+      setMessages(updatedChat.messages);
+
+      if (onChatUpdate) {
+        onChatUpdate(updatedChat);
+      }
+
     } catch (error) {
       console.error("Error uploading file:", error);
       const errorMessage = {
         sender: "ai",
-        text: "Sorry, something went wrong with the file upload. Please ensure it is a valid PDF.",
+        text: "Sorry, there was an error analyzing your report.",
       };
       setMessages((currentMessages) => [...currentMessages, errorMessage]);
     } finally {
       setLoading(false);
     }
   };
-
+  
   const handleBubbleClick = (text) => {
     setInput(text);
   };
@@ -256,7 +276,34 @@ const ChatWindow = ({ selectedChat, onNewChat, onExitChat, onChatUpdate }) => {
               <div className="message-icon">
                 {msg.sender === "user" ? <FaUser /> : <FaRobot />}
               </div>
-              <div className="message-content">{msg.text}</div>
+              <div className="message-content">
+                {/* --- THIS RENDER LOGIC HAS BEEN CORRECTED --- */}
+                {(() => {
+                  if (msg.sender === 'user') {
+                    return <p>{msg.text}</p>;
+                  }
+                  if (msg.sender === 'ai' && msg.text) {
+                    if (typeof msg.text === 'object' && msg.text !== null) {
+                      return <ReportDisplay data={msg.text} />;
+                    }
+                    try {
+                      const parsedData = JSON.parse(msg.text);
+      
+                      if (typeof parsedData === 'object' && parsedData !== null && parsedData.keyTakeaways) {
+                        return <ReportDisplay data={parsedData} />;
+                      }
+                    } catch (e) {
+                      // Not JSON, fall through to Markdown renderer
+                    }
+                    return (
+                      <div className="markdown-content">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{String(msg.text)}</ReactMarkdown>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
             </div>
           ))}
           {loading && (
@@ -318,8 +365,13 @@ const ChatWindow = ({ selectedChat, onNewChat, onExitChat, onChatUpdate }) => {
           {file && (
             <>
               <span className="file-name">{file.name}</span>
-              <button onClick={handleFileUpload} className="send-file-btn">
-                <FaUpload />
+              <button 
+                type="button" 
+                onClick={() => setFile(null)} 
+                className="remove-file-btn"
+                title="Remove file"
+              >
+                <FaTimes />
               </button>
             </>
           )}
@@ -329,14 +381,14 @@ const ChatWindow = ({ selectedChat, onNewChat, onExitChat, onChatUpdate }) => {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Message ConsultAI..."
+            placeholder={file ? "Add a message about this file..." : "Message ConsultAI..."}
             className="message-input"
             disabled={loading}
           />
           <button
             type="submit"
             className="send-btn"
-            disabled={loading || !!file}
+            disabled={loading}
             aria-label="Send"
             style={{
               display: "flex",

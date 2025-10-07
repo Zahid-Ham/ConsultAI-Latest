@@ -10,6 +10,7 @@
     "seed:test-users": "node scripts/seedTestUsers.js"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@huggingface/inference": "^4.7.1",
     "axios": "^1.11.0",
     "bcryptjs": "^2.4.3",

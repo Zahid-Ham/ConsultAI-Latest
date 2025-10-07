@@ -35,7 +35,9 @@ export default function FAQ() {
           <div className="faq-item" key={i}>
             <button className="faq-question" onClick={() => toggle(i)}>
               {item.q}
-              <span className={`faq-arrow ${openIndex === i ? "open" : ""}`}>▼</span>
+              <span className={`faq-arrow ${openIndex === i ? "open" : ""}`}>
+                ▼
+              </span>
             </button>
             {openIndex === i && <div className="faq-answer">{item.a}</div>}
           </div>

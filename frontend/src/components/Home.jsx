@@ -20,7 +20,7 @@ const Home = () => {
           <h1 className="welcome-title">
             Welcome to <span className="consultai-accent">ConsultAI</span>
           </h1>
-          <p className="welcome-subtitle" style={{color:"#ffff"}}>
+          <p className="welcome-subtitle" style={{ color: "#ffff" }}>
             Your trusted healthcare consultation platform
           </p>
 
@@ -30,7 +30,12 @@ const Home = () => {
                 <button className="explore">Sign In</button>
               </Link>
               <Link to="/register">
-                <button className="explore" style={{ background: "#7b97cfff", color: "#ffd700" }}>Create Account</button>
+                <button
+                  className="explore"
+                  style={{ background: "#7b97cfff", color: "#ffd700" }}
+                >
+                  Create Account
+                </button>
               </Link>
             </div>
           )}
@@ -49,12 +54,12 @@ const Home = () => {
       {/* 3D carousel */}
       <main>
         <FeatureRing3D />
-          <Testimonials />
-          <FAQ />
+        <Testimonials />
+        <FAQ />
       </main>
 
       {/* optional footer spacing */}
-        <Footer />
+      <Footer />
     </div>
   );
 };

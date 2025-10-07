@@ -1,0 +1,98 @@
+.report-container {
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 10px 0;
+  font-family: sans-serif;
+  color: #333;
+}
+
+.report-container h3, .report-container h4 {
+  margin-top: 0;
+  color: #1a73e8;
+}
+
+.report-container .summary {
+  font-style: italic;
+}
+
+.report-container .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.results-table th, .results-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.results-table th {
+  background-color: #eef;
+}
+
+.findings-list {
+  padding-left: 20px;
+}
+
+/* === REPLACE the old .markdown-content styles with this new block === */
+
+.markdown-content {
+  text-align: left;
+  color: #333;
+  font-family: sans-serif;
+  line-height: 1.6; /* Improve readability */
+}
+
+/* Tighter margins for all block elements to reduce large gaps */
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6,
+.markdown-content p,
+.markdown-content ul,
+.markdown-content ol {
+  margin-top: 0;
+  margin-bottom: 10px; /* Reduced from 0.75em to a smaller, fixed value */
+}
+
+/* Ensure lists are indented correctly */
+.markdown-content ul,
+.markdown-content ol {
+  padding-left: 24px;
+}
+
+/* Very small margin for list items to keep them close together */
+.markdown-content li {
+  margin-bottom: 5px;
+}
+
+/* --- ADD THESE STYLES for Tables --- */
+
+.markdown-content table {
+  width: 100%;
+  border-collapse: collapse; /* This is key to making borders look clean */
+  margin-bottom: 1em;
+}
+
+.markdown-content th,
+.markdown-content td {
+  border: 1px solid #ddd; /* Adds the actual border */
+  padding: 8px;
+  text-align: left;
+}
+
+.markdown-content th {
+  background-color: #f2f2f2; /* Gives the header a light grey background */
+  font-weight: bold;
+}

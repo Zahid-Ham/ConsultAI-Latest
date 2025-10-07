@@ -8,7 +8,10 @@ export default function Footer() {
       <div className="footer-content">
         <div className="footer-brand">
           <h3>ConsultAI</h3>
-          <p>ConsultAI is a premium healthcare platform connecting patients and doctors securely, powered by AI.</p>
+          <p>
+            ConsultAI is a premium healthcare platform connecting patients and
+            doctors securely, powered by AI.
+          </p>
         </div>
         <div className="footer-links">
           <a href="/">Home</a>
@@ -18,9 +21,15 @@ export default function Footer() {
           <a href="/terms">Terms & Conditions</a>
         </div>
         <div className="footer-social">
-          <a href="#" aria-label="Twitter"><FaTwitter /></a>
-          <a href="#" aria-label="LinkedIn"><FaLinkedin /></a>
-          <a href="#" aria-label="Instagram"><FaInstagram /></a>
+          <a href="#" aria-label="Twitter">
+            <FaTwitter />
+          </a>
+          <a href="#" aria-label="LinkedIn">
+            <FaLinkedin />
+          </a>
+          <a href="#" aria-label="Instagram">
+            <FaInstagram />
+          </a>
         </div>
       </div>
       <div className="footer-bottom">

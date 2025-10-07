@@ -8,7 +8,7 @@ const messageSchema = new mongoose.Schema({
         required: true,
     },
     text: {
-        type: String,
+        type: mongoose.Schema.Types.Mixed, // MODIFIED: Allows both string and JSON object
         required: true,
     },
     createdAt: {
@@ -32,6 +32,13 @@ const chatSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    // --- ADD THIS FIELD ---
+    modelType: {
+        type: String,
+        enum: ['medllama2', 'gemini'],
+        default: 'medllama2',
+    },
+    // --------------------
 });
 
 const Chat = mongoose.model('Chat', chatSchema);
