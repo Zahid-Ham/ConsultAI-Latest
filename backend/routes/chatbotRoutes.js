@@ -17,6 +17,8 @@ router.post('/symptom-analysis', protect, chatbotController.analyzeSymptoms);
 
 // Route for medical report analysis (File Upload)
 router.post('/report-analysis', protect, upload.single('file'), chatbotController.analyzeReport);
+// Route for medical report analysis when the file is stored in Cloudinary
+router.post('/report-analysis-cloudinary', protect, chatbotController.analyzeReportCloudinary);
 
 // === NEW CHAT HISTORY ROUTES ===
 

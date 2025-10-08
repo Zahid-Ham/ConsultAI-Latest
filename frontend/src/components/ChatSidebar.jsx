@@ -51,7 +51,26 @@ const ChatSidebar = ({ onSelectChat, onNewChat, isChatOpen, onToggleSidebar }) =
                     chats.map(chat => (
                         <div key={chat._id} className="chat-item" onClick={() => onSelectChat(chat)}>
                             <FaRegComment />
-                            <span>{chat.title}</span>
+                            {
+                                (() => {
+                                    // Compute a display title if the backend title is default
+                                    const defaultTitle = !chat.title || /^New Chat/i.test(chat.title);
+                                    if (!defaultTitle) return <span>{chat.title}</span>;
+                                    // Try to derive from first message
+                                    let derived = 'New Chat';
+                                    if (chat.messages && chat.messages.length > 0) {
+                                        const first = chat.messages[0].text || '';
+                                        const text = typeof first === 'string' ? first : JSON.stringify(first);
+                                        const fileMatch = text.match(/(?:File attached:|Cloud file attached:)\s*([^\.\n]+)/i);
+                                        if (fileMatch && fileMatch[1]) {
+                                            derived = fileMatch[1].trim();
+                                        } else if (text.trim().length > 0) {
+                                            derived = text.trim().substring(0, 30) + (text.trim().length > 30 ? '...' : '');
+                                        }
+                                    }
+                                    return <span>{derived}</span>;
+                                })()
+                            }
                             <button onClick={(e) => handleDeleteChat(e, chat._id)} className="delete-chat-btn">
                                 <FaTrash />
                             </button>

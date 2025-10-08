@@ -3,8 +3,8 @@
  * This service communicates with Google's Gemini API to analyze medical reports
  */
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-require('dotenv').config();
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+require("dotenv").config();
 
 /**
  * Analyzes a medical report image using Google's Gemini API
@@ -13,35 +13,47 @@ require('dotenv').config();
  * @param {string} userMessage - Additional context or questions from the user
  * @returns {Promise<Object>} - The parsed JSON response from Gemini
  */
-async function analyzeReportWithGemini(imageBuffer, imageMimeType, userMessage) {
+async function analyzeReportWithGemini(
+  imageBuffer,
+  imageMimeType,
+  userMessage
+) {
   const apiKeys = [
     process.env.GEMINI_API_KEY_1,
     process.env.GEMINI_API_KEY_2,
-    process.env.GEMINI_API_KEY_3
+    process.env.GEMINI_API_KEY_3,
   ];
 
+  // small helper for backoff
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
   for (const apiKey of apiKeys) {
-    try {
-      const genAI = new GoogleGenerativeAI(apiKey);
+    if (!apiKey) continue;
+    let attempt = 0;
+    const maxAttempts = 3; // per key
 
-      const model = genAI.getGenerativeModel({
-        model: "gemini-flash-latest",
-        generationConfig: {
-          response_mime_type: "application/json",
-        },
-      });
+    while (attempt < maxAttempts) {
+      try {
+        attempt++;
+        const genAI = new GoogleGenerativeAI(apiKey);
 
-      const imageBase64 = imageBuffer.toString('base64');
+        const model = genAI.getGenerativeModel({
+          model: "gemini-flash-latest",
+          generationConfig: {
+            response_mime_type: "application/json",
+          },
+        });
 
-      const imagePart = {
-        inlineData: {
-          data: imageBase64,
-          mimeType: imageMimeType
-        }
-      };
+        const imageBase64 = imageBuffer.toString("base64");
 
-      // --- START: IMPROVED PROMPT ---
-      const instructions = `
+        const imagePart = {
+          inlineData: {
+            data: imageBase64,
+            mimeType: imageMimeType,
+          },
+        };
+
+        const instructions = `
         You are an expert medical AI assistant with a high degree of empathy. Your primary role is to act as a health educator, breaking down complex medical reports into simple, understandable, and reassuring information for a patient. Your tone should be clear, calm, and supportive.
 
         Analyze the attached medical report and generate a response that strictly follows the JSON structure below.
@@ -72,32 +84,71 @@ async function analyzeReportWithGemini(imageBuffer, imageMimeType, userMessage) 
           "summary": "A brief, one-paragraph summary of the report's overall findings, written in a reassuring and easy-to-understand tone."
         }
       `;
-      // --- END: IMPROVED PROMPT ---
 
-      const promptParts = [
-        { text: instructions },
-        { text: `User's specific question: ${userMessage || "Please provide a general analysis."}` },
-        imagePart
-      ];
+        const promptParts = [
+          { text: instructions },
+          {
+            text: `User's specific question: ${
+              userMessage || "Please provide a general analysis."
+            }`,
+          },
+          imagePart,
+        ];
 
-      const result = await model.generateContent({
-        contents: [{ role: 'user', parts: promptParts }]
-      });
+        const result = await model.generateContent({
+          contents: [{ role: "user", parts: promptParts }],
+        });
 
-      const response = result.response;
-      const textResponse = response.text();
-      
-      const jsonResponse = JSON.parse(textResponse);
-      return jsonResponse;
+        const response = result.response;
+        const textResponse = await response.text();
 
-    } catch (error) {
-      console.error(`API Key failed, trying next... Error: ${error.message}`);
+        // Try parsing JSON; throw if parse fails
+        try {
+          const jsonResponse = JSON.parse(textResponse);
+          return jsonResponse;
+        } catch (parseErr) {
+          console.error(
+            "Failed to parse Gemini JSON response:",
+            parseErr.message,
+            "raw:",
+            textResponse.slice(0, 500)
+          );
+          throw new Error("Invalid JSON response from Gemini.");
+        }
+      } catch (error) {
+        // Determine if error is transient (5xx / overloaded)
+        const msg = error && error.message ? error.message : String(error);
+        const isTransient =
+          /503|overloaded|temporar/i.test(msg) ||
+          (error &&
+            error.response &&
+            error.response.status &&
+            error.response.status >= 500);
+        console.error(
+          `Gemini attempt ${attempt} with current key failed: ${msg}`
+        );
+        if (isTransient && attempt < maxAttempts) {
+          const backoff = 1000 * attempt; // 1s, 2s
+          console.log(
+            `Transient error detected, backing off for ${backoff}ms before retrying (attempt ${
+              attempt + 1
+            }/${maxAttempts})`
+          );
+          // eslint-disable-next-line no-await-in-loop
+          await sleep(backoff);
+          continue; // retry same key
+        }
+        // If we've exhausted attempts for this key or error is non-transient, break to try next key
+        break;
+      }
     }
+    console.error("Moving to next API key (if available)");
   }
 
-  throw new Error('Report analysis failed. Please try again later.');
+  throw new Error(
+    "Report analysis failed after retries. Please try again later."
+  );
 }
-
 
 // --- MODIFIED FUNCTION TO HANDLE FOLLOW-UP CHATS ---
 
@@ -111,26 +162,37 @@ async function continueGeminiChat(chatHistory, newMessage) {
   const apiKeys = [
     process.env.GEMINI_API_KEY_1,
     process.env.GEMINI_API_KEY_2,
-    process.env.GEMINI_API_KEY_3
+    process.env.GEMINI_API_KEY_3,
   ];
 
-  const formattedHistory = chatHistory.map(msg => ({
-    role: msg.sender === 'user' ? 'user' : 'model',
-    parts: [{ text: typeof msg.text === 'string' ? msg.text : "This is the analysis of the user's medical report. Please answer follow-up questions based on this context." }],
+  const formattedHistory = chatHistory.map((msg) => ({
+    role: msg.sender === "user" ? "user" : "model",
+    parts: [
+      {
+        text:
+          typeof msg.text === "string"
+            ? msg.text
+            : "This is the analysis of the user's medical report. Please answer follow-up questions based on this context.",
+      },
+    ],
   }));
 
   for (const apiKey of apiKeys) {
     try {
       const genAI = new GoogleGenerativeAI(apiKey);
-      
+
       // ==================== START: CORRECTED CODE ====================
       // The system instruction is now part of the model's configuration,
       // not the history array.
-      const model = genAI.getGenerativeModel({ 
+      const model = genAI.getGenerativeModel({
         model: "gemini-flash-latest",
         systemInstruction: {
           role: "system",
-          parts: [{ text: "You are a helpful medical AI assistant. Your purpose is to answer the user's follow-up questions based on the preceding conversation, which includes an analysis of their medical report. Provide clear, conversational answers. Do not output raw JSON or repeat the analysis structure." }],
+          parts: [
+            {
+              text: "You are a helpful medical AI assistant. Your purpose is to answer the user's follow-up questions based on the preceding conversation, which includes an analysis of their medical report. Provide clear, conversational answers. Do not output raw JSON or repeat the analysis structure.",
+            },
+          ],
         },
       });
 
@@ -143,17 +205,17 @@ async function continueGeminiChat(chatHistory, newMessage) {
       const result = await chat.sendMessage(newMessage);
       const response = result.response;
       return response.text();
-
     } catch (error) {
-      console.error(`API Key failed (follow-up chat), trying next... Error: ${error.message}`);
+      console.error(
+        `API Key failed (follow-up chat), trying next... Error: ${error.message}`
+      );
     }
   }
 
-  throw new Error('Failed to get a response from Gemini for follow-up chat.');
+  throw new Error("Failed to get a response from Gemini for follow-up chat.");
 }
 
-
-module.exports = { 
+module.exports = {
   analyzeReportWithGemini,
-  continueGeminiChat
+  continueGeminiChat,
 };

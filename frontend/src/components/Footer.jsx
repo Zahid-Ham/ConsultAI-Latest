@@ -16,7 +16,7 @@ export default function Footer() {
         <div className="footer-links">
           <a href="/">Home</a>
           <a href="/dashboard">Dashboard</a>
-          <a href="/chat">Chat With AI</a>
+          <a href="/chat/ai">Chat With AI</a>
           <a href="/privacy-policy">Privacy Policy</a>
           <a href="/terms">Terms & Conditions</a>
         </div>

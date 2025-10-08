@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { FaTimes, FaUser, FaRobot, FaUpload, FaPaperPlane, FaFileAlt } from 'react-icons/fa';
+import { FaTimes, FaUser, FaRobot, FaUpload, FaPaperPlane, FaFileAlt, FaCloud } from 'react-icons/fa';
 import './Chatbot.css';
 
 // Chatbot component for the small pop-up chat window
@@ -11,6 +11,13 @@ const Chatbot = ({ onClose }) => {
     const [file, setFile] = useState(null);
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
+
+    // Cloudinary dialog states (reused from ChatWindow)
+    const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+    const [cloudFiles, setCloudFiles] = useState([]);
+    const [loadingCloud, setLoadingCloud] = useState(false);
+    const [errorCloud, setErrorCloud] = useState(null);
+    const [uploadTab, setUploadTab] = useState('computer');
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -42,6 +49,37 @@ const Chatbot = ({ onClose }) => {
         setFile(e.target.files[0]);
     };
 
+    // Fetch Cloudinary files when dialog opens and tab is 'cloud'
+    useEffect(() => {
+        if (uploadDialogOpen && uploadTab === 'cloud') {
+            setLoadingCloud(true);
+            setErrorCloud(null);
+            const token = localStorage.getItem('token');
+            const userStr = localStorage.getItem('user');
+            let userId = null;
+            try {
+                const u = userStr ? JSON.parse(userStr) : null;
+                userId = u?._id || null;
+            } catch (e) {
+                userId = null;
+            }
+            if (userId) {
+                axios.get(`http://localhost:5000/api/cloudinary/user/${userId}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+                    .then(res => {
+                        setCloudFiles(res.data.files || []);
+                        setLoadingCloud(false);
+                    })
+                    .catch(err => {
+                        setErrorCloud('Failed to load cloud files.');
+                        setLoadingCloud(false);
+                    });
+            } else {
+                setCloudFiles([]);
+                setLoadingCloud(false);
+            }
+        }
+    }, [uploadDialogOpen, uploadTab]);
+
     const handleFileUpload = async () => {
         if (!file) return;
         const formData = new FormData();
@@ -69,6 +107,52 @@ const Chatbot = ({ onClose }) => {
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
+        }
+    };
+
+    // Handle cloud file selection (reuse same flow as ChatWindow)
+    const handleSelectCloudFile = async (publicId) => {
+        if (!publicId) return;
+        setUploadDialogOpen(false);
+        try {
+            const token = localStorage.getItem('token');
+            const selectedFile = cloudFiles.find((f) => f.public_id === publicId);
+            if (!selectedFile) throw new Error('File not found');
+
+            const displayMessage = input.trim()
+                ? `${input.trim()} [Cloudinary file: ${selectedFile.original_filename || selectedFile.public_id}]`
+                : `Cloudinary file attached: ${selectedFile.original_filename || selectedFile.public_id}`;
+
+            const userMessageObj = { sender: 'user', text: displayMessage };
+            setMessages(currentMessages => [...currentMessages, userMessageObj]);
+            setLoading(true);
+
+            const payload = {
+                publicId,
+                fileUrl: selectedFile.url,
+                fileName: selectedFile.original_filename,
+                fileType: selectedFile.resource_type,
+                userMessage: input.trim(),
+                chatId: null,
+            };
+
+            const response = await axios.post('http://localhost:5000/api/chatbot/report-analysis-cloudinary', payload, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            const { chatId } = response.data;
+
+            // Fetch updated chat history if available (ChatWindow uses history endpoint); here we just append AI reply
+            const aiReply = response.data.reply;
+            setMessages(currentMessages => [...currentMessages, { sender: 'ai', text: aiReply }]);
+            setInput('');
+
+        } catch (error) {
+            console.error('Error analyzing cloud file:', error);
+            const errorMessage = { sender: 'ai', text: 'Sorry, there was an error analyzing your cloud file.' };
+            setMessages(currentMessages => [...currentMessages, errorMessage]);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -107,10 +191,13 @@ const Chatbot = ({ onClose }) => {
                         className="flex-1"
                         disabled={loading}
                     />
-                    <label htmlFor="file-upload" className="flex items-center justify-center p-2 rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-400">
+                    <label className="flex items-center justify-center p-2 rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-400">
                         <FaFileAlt size={20} />
                         <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} ref={fileInputRef} />
                     </label>
+                    <button type="button" title="Share a file" className="p-2 rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300" onClick={() => setUploadDialogOpen(true)}>
+                        <FaUpload size={16} />
+                    </button>
                     {file && (
                         <button
                             type="button"
@@ -126,6 +213,48 @@ const Chatbot = ({ onClose }) => {
                     </button>
                 </form>
             </div>
+
+            {/* Upload dialog for computer/cloud selection */}
+            {uploadDialogOpen && (
+                <div className="upload-modal-overlay">
+                    <div className="upload-modal">
+                        <div className="upload-modal-header">
+                            <h2>Upload Medical Report</h2>
+                            <button className="close-modal-btn" onClick={() => setUploadDialogOpen(false)}>×</button>
+                        </div>
+                        <div className="upload-modal-tabs">
+                            <button className={uploadTab === 'computer' ? 'active' : ''} onClick={() => setUploadTab('computer')}><FaUpload /> Upload from Computer</button>
+                            <button className={uploadTab === 'cloud' ? 'active' : ''} onClick={() => setUploadTab('cloud')}><FaCloud /> Cloudinary</button>
+                        </div>
+                        <div className="upload-modal-content">
+                            {uploadTab === 'computer' ? (
+                                <div className="upload-computer-section">
+                                    <input type="file" onChange={(e) => { setFile(e.target.files[0]); setUploadDialogOpen(false); }} className="upload-file-input" />
+                                    <p>Choose a medical report or document to analyze.</p>
+                                </div>
+                            ) : (
+                                <div className="upload-cloud-section">
+                                    {loadingCloud ? (
+                                        <p>Loading files...</p>
+                                    ) : errorCloud ? (
+                                        <p>{errorCloud}</p>
+                                    ) : (
+                                        <ul className="cloud-file-list">
+                                            {cloudFiles && cloudFiles.length > 0 ? (
+                                                cloudFiles.map((f) => (
+                                                    <li key={f.public_id} onClick={() => handleSelectCloudFile(f.public_id)} style={{ cursor: 'pointer', padding: '8px', borderBottom: '1px solid #eee' }}>{f.original_filename || f.public_id}</li>
+                                                ))
+                                            ) : (
+                                                <li>No files found in Cloudinary.</li>
+                                            )}
+                                        </ul>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

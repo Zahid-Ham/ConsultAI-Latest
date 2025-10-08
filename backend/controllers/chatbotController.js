@@ -4,6 +4,7 @@ import { Ollama } from "ollama";
 import Chat from "../models/Chat.js";
 // MODIFIED: Import both Gemini service functions
 import { analyzeReportWithGemini, continueGeminiChat } from '../services/geminiService.js';
+import axios from 'axios';
 
 const ollama = new Ollama({ host: "http://localhost:11434" });
 
@@ -24,7 +25,17 @@ export async function analyzeSymptoms(req, res) {
     }
 
     chatSession.messages.push({ sender: "user", text: message });
-    await chatSession.save(); // Save user message immediately
+    // If chat still has default title, update it from the first user message
+    try {
+      if (!chatSession.title || chatSession.title === 'New Chat') {
+        const candidate = (message || '').toString().trim();
+        const newTitle = candidate.length > 0 ? (candidate.length > 30 ? candidate.substring(0, 30) + '...' : candidate) : 'New Chat';
+        chatSession.title = newTitle;
+      }
+    } catch (e) {
+      // ignore title update errors
+    }
+    await chatSession.save(); // Save user message immediately (and possibly updated title)
 
     let aiReply;
 
@@ -97,10 +108,14 @@ export async function analyzeReport(req, res) {
     }
 
     // Save the user's message about the file
-    chatSession.messages.push({
-      sender: "user",
-      text: `File attached: ${file.originalname}. User request: ${userMessage || 'None'}`,
-    });
+    const userText = `File attached: ${file.originalname}. User request: ${userMessage || 'None'}`;
+    chatSession.messages.push({ sender: "user", text: userText });
+    // If chat has default title, update it to the file name
+    try {
+      if (!chatSession.title || chatSession.title === 'New Chat') {
+        chatSession.title = file.originalname && file.originalname.length > 0 ? (file.originalname.length > 30 ? file.originalname.substring(0,30) + '...' : file.originalname) : chatSession.title;
+      }
+    } catch(e) {}
 
     // Call the Gemini service to get the structured JSON analysis
     const analysisResult = await analyzeReportWithGemini(req.file.buffer, req.file.mimetype, userMessage);
@@ -120,5 +135,60 @@ export async function analyzeReport(req, res) {
   } catch (error) {
     console.error("Error with report analysis:", error);
     res.status(500).json({ error: "Failed to analyze the report." });
+  }
+}
+
+// New: Analyze a report that is stored in Cloudinary (frontend sends fileUrl/publicId)
+export async function analyzeReportCloudinary(req, res) {
+  try {
+    const { publicId, fileUrl, fileName, fileType, userMessage, chatId } = req.body;
+
+    if (!fileUrl) {
+      return res.status(400).json({ error: 'fileUrl is required.' });
+    }
+
+    // Download the file from Cloudinary (or the provided fileUrl)
+    const fetchRes = await axios.get(fileUrl, { responseType: 'arraybuffer' });
+    const buffer = Buffer.from(fetchRes.data, 'binary');
+    const mimeType = fetchRes.headers['content-type'] || fileType || 'application/pdf';
+
+    let chatSession = null;
+    if (chatId && chatId !== 'null') {
+      chatSession = await Chat.findById(chatId);
+    }
+    if (!chatSession) {
+      chatSession = new Chat({
+        userId: req.user.id,
+        title: `Report: ${fileName ? fileName.substring(0, 20) + '...' : publicId}`,
+        messages: [],
+      });
+    }
+
+    // Save the user's message about the file
+    const userText = `Cloud file attached: ${fileName || publicId}. User request: ${userMessage || 'None'}`;
+    chatSession.messages.push({ sender: 'user', text: userText });
+    // If chat has default title, update it to the file name or publicId
+    try {
+      if (!chatSession.title || chatSession.title === 'New Chat') {
+        const titleCandidate = fileName || publicId || 'Report';
+        chatSession.title = titleCandidate.length > 30 ? titleCandidate.substring(0,30) + '...' : titleCandidate;
+      }
+    } catch(e) {}
+
+    // Call the Gemini service to get the structured JSON analysis
+    const analysisResult = await analyzeReportWithGemini(buffer, mimeType, userMessage);
+
+    // Save the JSON object directly as the AI's reply
+    chatSession.messages.push({ sender: 'ai', text: analysisResult });
+
+    // Flag the chat for Gemini follow-ups
+    chatSession.modelType = 'gemini';
+    await chatSession.save();
+
+    // Return the structured analysis and chat id
+    res.status(200).json({ reply: analysisResult, chatId: chatSession._id });
+  } catch (error) {
+    console.error('Error with cloud report analysis:', error);
+    res.status(500).json({ error: 'Failed to analyze the cloud file.' });
   }
 }
