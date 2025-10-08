@@ -15,7 +15,8 @@ import ChatbotPage from './components/ChatbotPage';
 import PatientDoctorChat from './components/chat/PatientDoctorChat';
 import FindDoctor from './components/FindDoctor';
 import ProfilePage from './components/ProfilePage'; // 👈 1. IMPORT THE NEW COMPONENT
-
+import TermsAndConditions from './components/TermsAndConditions'; // 👈 Import
+import PrivacyPolicy from './components/PrivacyPolicy';         // 👈 Import
 // CSS
 import './App.css';
 import './assets/css/ChatStyles.css';
@@ -28,6 +29,9 @@ function AppContent() {
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Home />} />
+          {/* 👇 ADD THESE TWO LINES FOR YOUR LEGAL PAGES */}
+          <Route path="/terms" element={<TermsAndConditions />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Dashboard />

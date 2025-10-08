@@ -1,0 +1,49 @@
+.legal-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 24px 32px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  color: #333;
+  line-height: 1.7;
+}
+
+.legal-container h1 {
+  font-size: 2.5rem;
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 16px;
+}
+
+.legal-container h2 {
+  font-size: 1.5rem;
+  color: #34495e;
+  margin-top: 32px;
+  margin-bottom: 12px;
+}
+
+.legal-container p,
+.legal-container li {
+  font-size: 1rem;
+  color: #555;
+  text-align: justify;
+}
+
+.legal-container ul {
+  padding-left: 20px;
+}
+
+.legal-container strong {
+  color: #2c3e50;
+}
+
+/* A class to add the last updated date */
+.last-updated {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    margin-bottom: 30px;
+}

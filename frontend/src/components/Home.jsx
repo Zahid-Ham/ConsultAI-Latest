@@ -8,6 +8,8 @@ import Testimonials from "./Testimonials";
 import FAQ from "./FAQ";
 import Footer from "./Footer";
 import "./LandingTheme.css";
+import TermsAndConditions from './TermsAndConditions'; // 👈 Import
+import PrivacyPolicy from './PrivacyPolicy';         // 👈 Import
 
 const Home = () => {
   const { isAuthenticated, user, isDoctor, isPatient } = useAuthContext();

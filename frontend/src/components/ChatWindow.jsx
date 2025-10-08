@@ -4,20 +4,113 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm'; // --- 1. IMPORT THE GFM PLUGIN ---
+import remarkGfm from 'remark-gfm';
 import {
   FaUser,
   FaRobot,
   FaFileAlt,
   FaTimes,
   FaStethoscope,
+  FaUpload,
+  FaCloud,
 } from "react-icons/fa";
+import { useAuthContext } from "../contexts/AuthContext";
 import "./ChatbotLayout.css";
 import ReportDisplay from './ReportDisplay';
 import './ReportDisplay.css';
 
+// Upload Modal Dialog Component
+const UploadFileDialog = ({
+  open,
+  onClose,
+  onUploadFromComputer,
+  onSelectCloudFile,
+  cloudFiles,
+  loadingCloud,
+  errorCloud,
+  tab,
+  setTab,
+}) => {
+  const [selectedCloudFile, setSelectedCloudFile] = useState(null);
+  if (!open) return null;
+  
+  return (
+    <div className="upload-modal-overlay">
+      <div className="upload-modal">
+        <div className="upload-modal-header">
+          <h2>Upload Medical Report</h2>
+          <button className="close-modal-btn" onClick={onClose}>
+            &times;
+          </button>
+        </div>
+        <div className="upload-modal-tabs">
+          <button
+            className={tab === "computer" ? "active" : ""}
+            onClick={() => setTab("computer")}
+          >
+            <FaUpload /> Upload from Computer
+          </button>
+          <button
+            className={tab === "cloud" ? "active" : ""}
+            onClick={() => setTab("cloud")}
+          >
+            <FaCloud /> Cloudinary
+          </button>
+        </div>
+        <div className="upload-modal-content">
+          {tab === "computer" ? (
+            <div className="upload-computer-section">
+              <input
+                type="file"
+                onChange={(e) => onUploadFromComputer(e.target.files[0])}
+                className="upload-file-input"
+              />
+              <p>Choose a medical report or document to analyze.</p>
+            </div>
+          ) : (
+            <div className="upload-cloud-section">
+              {loadingCloud ? (
+                <p>Loading files...</p>
+              ) : errorCloud ? (
+                <p>{errorCloud}</p>
+              ) : (
+                <ul className="cloud-file-list">
+                  {cloudFiles && cloudFiles.length > 0 ? (
+                    cloudFiles.map((file) => (
+                      <li
+                        key={file.public_id}
+                        className={
+                          selectedCloudFile === file.public_id ? "selected" : ""
+                        }
+                        onClick={() => setSelectedCloudFile(file.public_id)}
+                      >
+                        <span>{file.original_filename || file.public_id}</span>
+                      </li>
+                    ))
+                  ) : (
+                    <li>No files found in Cloudinary.</li>
+                  )}
+                </ul>
+              )}
+              <button
+                className="select-cloud-btn"
+                disabled={!selectedCloudFile}
+                onClick={() => onSelectCloudFile(selectedCloudFile)}
+              >
+                Analyze Selected File
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
   const navigate = useNavigate();
+  const { user } = useAuthContext();
+  
   // Disable scroll for chat/ai page only
   useEffect(() => {
     if (window.location.pathname === "/chat/ai") {
@@ -25,12 +118,46 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
       return () => document.body.classList.remove("chat-ai-no-scroll");
     }
   }, []);
+  
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // Cloudinary dialog states
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [cloudFiles, setCloudFiles] = useState([]);
+  const [loadingCloud, setLoadingCloud] = useState(false);
+  const [errorCloud, setErrorCloud] = useState(null);
+  const [uploadTab, setUploadTab] = useState("computer");
+
+  // Fetch Cloudinary files when dialog opens and tab is 'cloud'
+  useEffect(() => {
+    if (uploadDialogOpen && uploadTab === "cloud") {
+      setLoadingCloud(true);
+      setErrorCloud(null);
+      const token = localStorage.getItem("token");
+      if (user && user._id) {
+        axios
+          .get(`http://localhost:5000/api/cloudinary/user/${user._id}`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          })
+          .then((res) => {
+            setCloudFiles(res.data.files || []);
+            setLoadingCloud(false);
+          })
+          .catch((err) => {
+            setErrorCloud("Failed to load cloud files.");
+            setLoadingCloud(false);
+          });
+      } else {
+        setCloudFiles([]);
+        setLoadingCloud(false);
+      }
+    }
+  }, [uploadDialogOpen, uploadTab, user]);
 
   useEffect(() => {
     if (selectedChat) {
@@ -57,17 +184,14 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
 
     // If no chat is selected, create a new chat session first
     if (!selectedChat && typeof onNewChat === "function") {
-      // Show user's message immediately
       const userMessage = { sender: "user", text: input };
       setMessages([userMessage]);
       setInput("");
       setLoading(true);
       try {
-        // onNewChat should return a Promise that resolves to the new chat object
         const newChat = await onNewChat();
         if (newChat) {
           if (onChatUpdate) onChatUpdate(newChat);
-          // Now send the message to the new chat
           const token = localStorage.getItem("token");
           await axios.post(
             "http://localhost:5000/api/chatbot/symptom-analysis",
@@ -76,7 +200,6 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
               headers: { Authorization: `Bearer ${token}` },
             }
           );
-          // Fetch updated chat from backend
           const chatRes = await axios.get(
             `http://localhost:5000/api/chatbot/history/${newChat._id}`,
             {
@@ -102,7 +225,6 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
       return;
     }
 
-    // If chat is selected, proceed as before
     const userMessage = { sender: "user", text: input };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
@@ -117,7 +239,6 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      // Fetch updated chat from backend
       if (selectedChat && selectedChat._id) {
         const chatRes = await axios.get(
           `http://localhost:5000/api/chatbot/history/${selectedChat._id}`,
@@ -147,7 +268,6 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
     setFile(e.target.files[0]);
   };
 
-  // --- THIS FUNCTION HAS BEEN CORRECTED TO UPDATE THE CHAT TITLE ---
   const handleFileUpload = async (userMessage = "") => {
     if (!file) return;
 
@@ -156,7 +276,6 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
     if (selectedChat && selectedChat._id) {
         formData.append("chatId", selectedChat._id);
     } else {
-        // Ensure chatId is not 'null' or 'undefined' when no chat is selected
         formData.append("chatId", ''); 
     }
     formData.append("userMessage", userMessage);
@@ -211,6 +330,83 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
       const errorMessage = {
         sender: "ai",
         text: "Sorry, there was an error analyzing your report.",
+      };
+      setMessages((currentMessages) => [...currentMessages, errorMessage]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle upload from computer via dialog
+  const handleUploadFromComputer = async (selectedFile) => {
+    if (!selectedFile) return;
+    setUploadDialogOpen(false);
+    setFile(selectedFile);
+  };
+
+  // Handle cloud file selection
+  const handleSelectCloudFile = async (publicId) => {
+    if (!publicId) return;
+    setUploadDialogOpen(false);
+    
+    try {
+      const token = localStorage.getItem("token");
+      const selectedFile = cloudFiles.find((f) => f.public_id === publicId);
+      if (!selectedFile) throw new Error("File not found");
+
+      // Show user message indicating file is being processed
+      const displayMessage = input.trim()
+        ? `${input.trim()} [Cloudinary file: ${selectedFile.original_filename || selectedFile.public_id}]`
+        : `Cloudinary file attached: ${selectedFile.original_filename || selectedFile.public_id}`;
+      
+      const userMessageObj = {
+        sender: "user",
+        text: displayMessage,
+      };
+      
+      setMessages(prevMessages => [...prevMessages, userMessageObj]);
+      setLoading(true);
+
+      // Prepare data for cloudinary file analysis
+      const payload = {
+        publicId,
+        fileUrl: selectedFile.url,
+        fileName: selectedFile.original_filename,
+        fileType: selectedFile.resource_type,
+        userMessage: input.trim(),
+        chatId: selectedChat && selectedChat._id ? selectedChat._id : '',
+      };
+
+      const response = await axios.post(
+        "http://localhost:5000/api/chatbot/report-analysis-cloudinary",
+        payload,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const { chatId } = response.data;
+
+      const chatRes = await axios.get(
+        `http://localhost:5000/api/chatbot/history/${chatId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const updatedChat = chatRes.data.chat;
+
+      setMessages(updatedChat.messages);
+      setInput("");
+
+      if (onChatUpdate) {
+        onChatUpdate(updatedChat);
+      }
+
+    } catch (error) {
+      console.error("Error analyzing cloud file:", error);
+      const errorMessage = {
+        sender: "ai",
+        text: "Sorry, there was an error analyzing your cloud file.",
       };
       setMessages((currentMessages) => [...currentMessages, errorMessage]);
     } finally {
@@ -277,7 +473,6 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
                 {msg.sender === "user" ? <FaUser /> : <FaRobot />}
               </div>
               <div className="message-content">
-                {/* --- THIS RENDER LOGIC HAS BEEN CORRECTED --- */}
                 {(() => {
                   if (msg.sender === 'user') {
                     return <p>{msg.text}</p>;
@@ -352,15 +547,12 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
       </div>
       <div className="chat-input-area">
         <div className="file-upload-section">
-          <label htmlFor="file-upload" className="file-upload-btn">
+          <label 
+            className="file-upload-btn"
+            onClick={() => setUploadDialogOpen(true)}
+            style={{ cursor: 'pointer' }}
+          >
             <FaFileAlt />
-            <input
-              id="file-upload"
-              type="file"
-              onChange={handleFileChange}
-              ref={fileInputRef}
-              style={{ display: "none" }}
-            />
           </label>
           {file && (
             <>
@@ -422,6 +614,18 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
           </button>
         </form>
       </div>
+      
+      <UploadFileDialog
+        open={uploadDialogOpen}
+        onClose={() => setUploadDialogOpen(false)}
+        onUploadFromComputer={handleUploadFromComputer}
+        onSelectCloudFile={handleSelectCloudFile}
+        cloudFiles={cloudFiles}
+        loadingCloud={loadingCloud}
+        errorCloud={errorCloud}
+        tab={uploadTab}
+        setTab={setUploadTab}
+      />
     </div>
   );
 };
