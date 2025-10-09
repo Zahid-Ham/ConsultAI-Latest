@@ -17,6 +17,7 @@
   justify-content: center;
   padding: 18px 12px 36px;
   box-sizing: border-box;
+  margin-top: 40px; /* <-- THIS IS THE FIX: Adds space above the carousel */
 }
 
 /* stage holds the 3D items */
@@ -82,10 +83,10 @@
   box-sizing: border-box;
   color: white;
   gap: 8px;
-  pointer-events: auto; /* ✅ Allow clicks inside card (for Explore button only) */
+  pointer-events: auto;
 }
 .card-face button {
-  pointer-events: auto; /* re-enable clicks on buttons */
+  pointer-events: auto;
 }
 
 /* emoji bubble */
@@ -126,7 +127,7 @@
   font-weight: 700;
   border: 1px solid rgba(255,255,255,0.12);
   backdrop-filter: blur(4px);
-  cursor: pointer; /* ✅ pointer for Explore button */
+  cursor: pointer;
   transition: background 0.3s ease, transform 0.2s ease;
 }
 .card-cta:hover {
@@ -199,5 +200,5 @@
 /* micro polish: while grabbing */
 .carousel-card:active { cursor: grabbing; }
 .carousel-card {
-  cursor: default; /* ✅ No clickable hand cursor */
+  cursor: default;
 }

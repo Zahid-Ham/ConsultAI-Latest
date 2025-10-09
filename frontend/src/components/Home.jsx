@@ -1,6 +1,6 @@
 // frontend/src/components/Home.jsx
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuthContext } from "../contexts/AuthContext";
 import FeatureRing3D from "./landing/FeatureRing3D";
 import "./landing/featureRing3D.css";
@@ -10,9 +10,13 @@ import Footer from "./Footer";
 import "./LandingTheme.css";
 import TermsAndConditions from './TermsAndConditions'; // 👈 Import
 import PrivacyPolicy from './PrivacyPolicy';         // 👈 Import
+import ChatFloatingButton from "./ChatWithAI";
 
 const Home = () => {
   const { isAuthenticated, user, isDoctor, isPatient } = useAuthContext();
+  const location = useLocation();
+  // Only show floating button if patient and not on /chat or /chat/ai
+  const showChatAIButton = isPatient && location.pathname !== "/chat" && location.pathname !== "/chat/ai";
 
   return (
     <div className="home-container">
@@ -60,8 +64,9 @@ const Home = () => {
         <FAQ />
       </main>
 
-      {/* optional footer spacing */}
-      <Footer />
+  {/* optional footer spacing */}
+  <Footer />
+  {showChatAIButton && <ChatFloatingButton />}
     </div>
   );
 };

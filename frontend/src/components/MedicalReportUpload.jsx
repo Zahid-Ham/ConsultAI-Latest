@@ -2,8 +2,14 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { FaTrash, FaEye, FaDownload } from "react-icons/fa";
 import "./MedicalReportUpload.css";
+import { useLocation } from "react-router-dom";
+import { useAuthContext } from "../contexts/AuthContext";
+import ChatFloatingButton from "./ChatWithAI";
 
 const MedicalReportUpload = ({ patientId }) => {
+  const location = useLocation();
+  const { isPatient } = useAuthContext();
+  const showChatAIButton = isPatient && location.pathname !== "/chat" && location.pathname !== "/chat/ai";
   const [selectedFile, setSelectedFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
@@ -659,6 +665,7 @@ const MedicalReportUpload = ({ patientId }) => {
           );
         })()
       ) : null}
+      {showChatAIButton && <ChatFloatingButton />}
     </div>
   );
 };

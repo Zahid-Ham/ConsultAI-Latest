@@ -17,6 +17,8 @@ import FindDoctor from './components/FindDoctor';
 import ProfilePage from './components/ProfilePage'; // 👈 1. IMPORT THE NEW COMPONENT
 import TermsAndConditions from './components/TermsAndConditions'; // 👈 Import
 import PrivacyPolicy from './components/PrivacyPolicy';         // 👈 Import
+
+import MedicalReportUpload from "./components/MedicalReportUpload";
 // CSS
 import './App.css';
 import './assets/css/ChatStyles.css';
@@ -43,8 +45,14 @@ function AppContent() {
               <ProfilePage />
             </ProtectedRoute>
           } />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          {/* 👇 Medical Report Upload Route */}
+          <Route path="/medical-report-upload" element={
+            <ProtectedRoute allowedRoles={['patient']}>
+              <MedicalReportUpload patientId={user?._id} />
+            </ProtectedRoute>
+          } />
+          <Route path="/login" element={user ? <Home /> : <Login />} />
+          <Route path="/register" element={user ? <Home /> : <Register />} />
           <Route path="/admin" element={
             <ProtectedRoute allowedRoles={['admin']}>
               <Admin />

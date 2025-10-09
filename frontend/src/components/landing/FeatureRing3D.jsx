@@ -2,10 +2,13 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FEATURES } from "./featureData";
+import { useAuthContext } from "../../contexts/AuthContext"; // ✅ Import your Auth Context
 import "./featureRing3D.css";
 
 export default function FeatureRing3D({ features = FEATURES }) {
   const navigate = useNavigate();
+  const { user } = useAuthContext(); // ✅ Get the logged-in user from context
+
   const stageRef = useRef(null);
   const wrapRef = useRef(null);
 
@@ -39,7 +42,7 @@ export default function FeatureRing3D({ features = FEATURES }) {
     return () => ro.disconnect();
   }, []);
 
-  // Normalize angles for comparisons only
+  // Normalize angles
   const norm = (d) => {
     let x = d % 360;
     if (x < -180) x += 360;
@@ -73,7 +76,6 @@ export default function FeatureRing3D({ features = FEATURES }) {
     if (Math.abs(v) > 0.2) {
       startInertia(v);
     } else {
-      // 🟢 FIX: Do NOT force snap, just leave it at current rotation
       stageRef.current?.classList.remove("interacting");
     }
   };
@@ -121,7 +123,6 @@ export default function FeatureRing3D({ features = FEATURES }) {
       } else {
         rafRef.current = null;
         stageRef.current?.classList.remove("interacting");
-        // 🟢 No snap after inertia
       }
     };
     rafRef.current = requestAnimationFrame(stepFn);
@@ -134,7 +135,7 @@ export default function FeatureRing3D({ features = FEATURES }) {
     }
   };
 
-  // --- Navigation arrows ---
+  // --- Navigation ---
   const goNext = () => {
     cancelInertia();
     stageRef.current?.classList.remove("interacting");
@@ -147,7 +148,6 @@ export default function FeatureRing3D({ features = FEATURES }) {
     setRotation((r) => r + step);
   };
 
-  // --- Dots navigation ---
   const goToIndex = (i) => {
     cancelInertia();
     const target = -i * step;
@@ -161,7 +161,7 @@ export default function FeatureRing3D({ features = FEATURES }) {
     return ((k % count) + count) % count;
   }, [rotation, step, count]);
 
-  // --- Cards styling ---
+  // --- Cards ---
   const cards = features.map((f, i) => {
     const angle = i * step + rotation;
     const angleRad = (angle * Math.PI) / 180;
@@ -213,8 +213,31 @@ export default function FeatureRing3D({ features = FEATURES }) {
                   <button
                     className="card-cta"
                     onClick={(e) => {
-                      e.stopPropagation(); // prevent triggering carousel
-                      navigate("/login"); // ✅ always go to login
+                      e.stopPropagation();
+                      // Route logic based on feature id
+                      if (!user) {
+                        navigate("/login");
+                        return;
+                      }
+                      switch (c.id) {
+                        case "find-doctor":
+                          navigate("/chat");
+                          break;
+                        case "ai-chat":
+                          navigate("/chat/ai");
+                          break;
+                        case "records":
+                          navigate("/medical-report-upload");
+                          break;
+                        case "security":
+                          navigate("/medical-report-upload"); // Secure & Private → report upload
+                          break;
+                        case "availability":
+                          navigate("/chat"); // 24/7 → doctor/patient chat
+                          break;
+                        default:
+                          navigate("/");
+                      }
                     }}
                   >
                     Explore

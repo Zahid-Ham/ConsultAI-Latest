@@ -1,7 +1,7 @@
 /* Light Mode Styles */
 .faq-section {
   padding: 60px 20px;
-  background-color: #ffffff;
+  background-color: #f8f9fa;
   transition: background-color 0.3s;
 }
 
@@ -20,28 +20,38 @@
 }
 
 .faq-item {
-  border-bottom: 1px solid #dee2e6;
-  transition: border-color 0.3s;
+  background-color: #ffffff;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  overflow: hidden;
+  transition: all 0.3s ease-in-out;
+  border: 1px solid #dee2e6;
 }
 
 .faq-question {
   width: 100%;
-  padding: 20px 0;
+  padding: 20px;
   text-align: left;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  color: #343a40;
-  background: none;
+  color: #007bff; /* Blue accent color */
+  background-color: #ffffff;
   border: none;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: color 0.3s;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.faq-question:hover {
+    background-color: #f1f3f5;
 }
 
 .faq-arrow {
   font-size: 1rem;
+  color: #6c757d;
   transition: transform 0.3s ease;
 }
 
@@ -49,11 +59,24 @@
   transform: rotate(180deg);
 }
 
+.faq-answer-container {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease-in-out;
+}
+
+.faq-answer-container.open {
+  max-height: 200px; /* Adjust if answers are longer */
+}
+
 .faq-answer {
-  padding: 0 10px 20px;
+  padding: 0 20px 20px;
   color: #6c757d;
   line-height: 1.6;
-  transition: color 0.3s;
+  border-top: 1px solid #e9ecef;
+  margin: 0 20px;
+  transition: color 0.3s, border-color 0.3s;
+  background-color: #ffffff; /* Explicitly set background */
 }
 
 /* ================================= */
@@ -61,21 +84,34 @@
 /* ================================= */
 
 body.dark .faq-section {
-  background-color: #2d3748; /* Dark grey background */
+  background-color: #1a202c;
 }
 
 body.dark .faq-section .section-title {
-  color: #e2e8f0; /* Light grey text */
+  color: #e2e8f0;
 }
 
 body.dark .faq-item {
-  border-bottom-color: #4a5568; /* Medium grey border */
+  background-color: #2d3748;
+  border-color: #4a5568;
 }
 
 body.dark .faq-question {
   color: #e2e8f0;
+  background-color: #2d3748;
+}
+
+body.dark .faq-question:hover {
+    background-color: #4a5568;
+}
+
+body.dark .faq-arrow {
+    color: #a0aec0;
 }
 
 body.dark .faq-answer {
-  color: #a0aec0; /* Lighter grey for answer text */
+  color: #cbd5e0;
+  border-top-color: #4a5568;
+  background-color: #2d3748; /* Match the item background */
 }
+

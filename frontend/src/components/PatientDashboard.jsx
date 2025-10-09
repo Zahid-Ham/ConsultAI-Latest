@@ -1,34 +1,16 @@
-import React, { useState } from "react"; // ✨ ADDED useState
+import React from "react";
 import { useAuthContext } from "../contexts/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaCommentDots, FaUserMd } from "react-icons/fa";
-import MedicalReportUpload from "./MedicalReportUpload"; // ✨ ADDED
+import ChatFloatingButton from "./ChatWithAI";
 
 const PatientDashboard = () => {
   const { user } = useAuthContext();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // ✨ ADDED: State to control the visibility of the medical reports component
-  const [showReports, setShowReports] = useState(false);
-
-  // ✨ ADDED: Handler to show the reports component
-  const handleReportsButtonClick = () => {
-    setShowReports(true);
-  };
-
-  // ✨ ADDED: Conditional rendering for the medical reports view
-  if (showReports) {
-    return (
-      <div className="dashboard-container">
-        <button
-          onClick={() => setShowReports(false)}
-          className="back-to-dashboard-btn" // You may need to add styling for this class
-        >
-          ← Back to Dashboard
-        </button>
-        <MedicalReportUpload patientId={user._id} />
-      </div>
-    );
-  }
+  // Only show floating button if not on /chat or /chat/ai
+  const showChatAIButton = location.pathname !== "/chat" && location.pathname !== "/chat/ai";
 
   return (
     <div className="dashboard-container">
@@ -40,6 +22,7 @@ const PatientDashboard = () => {
       <div className="dashboard-stats">
         {/* ... stat cards are unchanged ... */}
         <div className="stat-card">
+
           <h3>Appointments</h3>
           <p className="stat-number">0</p>
         </div>
@@ -81,12 +64,12 @@ const PatientDashboard = () => {
         <h2>Quick Actions</h2>
         <div className="quick-actions">
           <button className="btn btn-primary">Book Appointment</button>
-          {/* ✨ MODIFIED: Added onClick handler */}
+          {/* Use only the new navigation button for medical report upload */}
           <button
             className="btn btn-primary"
-            onClick={handleReportsButtonClick}
+            onClick={() => navigate("/medical-report-upload")}
           >
-            View Medical Records
+            Upload/View Medical Reports
           </button>
           <Link to="/chat" className="btn btn-primary">
             Message Doctor
@@ -96,6 +79,7 @@ const PatientDashboard = () => {
           </Link>
         </div>
       </div>
+      {showChatAIButton && <ChatFloatingButton />}
     </div>
   );
 };
