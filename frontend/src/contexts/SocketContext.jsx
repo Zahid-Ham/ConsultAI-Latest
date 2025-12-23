@@ -12,7 +12,9 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     // Connect to the Socket.IO server on mount
-    const newSocket = io('http://localhost:5000'); // Replace with your backend URL
+    // Use the environment variable, but remove the "/api" part if it exists
+const SOCKET_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace('/api', '');
+const newSocket = io(SOCKET_URL);// Replace with your backend URL
     setSocket(newSocket);
 
     // Clean up the socket connection on unmount
