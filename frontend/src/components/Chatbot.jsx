@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-// FIX 1: Import the 'api' utility. This handles the Render URL automatically.
-import api from "../utils/api";
+import axios from "axios"; // FIX: Use direct axios instead of api.js
 import {
   FaTimes,
   FaUser,
@@ -19,6 +18,9 @@ const Chatbot = ({ onClose }) => {
   const [file, setFile] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // Hardcoded Backend URL (Bypassing api.js to ensure it works)
+  const BACKEND_URL = "https://consultai-backend.onrender.com/api";
 
   // Cloudinary dialog states
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
@@ -40,10 +42,13 @@ const Chatbot = ({ onClose }) => {
     setLoading(true);
 
     try {
-      // FIX 2: Use 'api.post' (No http://localhost:5000)
-      const response = await api.post("/chatbot/symptom-analysis", {
-        message: input,
-      });
+      // FIX: Explicit full URL + manual token header
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${BACKEND_URL}/chatbot/symptom-analysis`,
+        { message: input },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       const aiMessage = { sender: "ai", text: response.data.reply };
       setMessages((currentMessages) => [...currentMessages, aiMessage]);
@@ -81,9 +86,11 @@ const Chatbot = ({ onClose }) => {
       }
 
       if (userId) {
-        // FIX 3: Use api.get
-        api
-          .get(`/cloudinary/user/${userId}`)
+        const token = localStorage.getItem("token");
+        axios
+          .get(`${BACKEND_URL}/cloudinary/user/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
           .then((res) => {
             setCloudFiles(res.data.files || []);
             setLoadingCloud(false);
@@ -111,8 +118,12 @@ const Chatbot = ({ onClose }) => {
     setLoading(true);
 
     try {
-      // FIX 4: Use api.post
-      const response = await api.post("/chatbot/report-analysis", formData);
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${BACKEND_URL}/chatbot/report-analysis`,
+        formData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       const aiMessage = { sender: "ai", text: response.data.reply };
       setMessages((currentMessages) => [...currentMessages, aiMessage]);
@@ -158,10 +169,11 @@ const Chatbot = ({ onClose }) => {
         chatId: null,
       };
 
-      // FIX 5: Use api.post
-      const response = await api.post(
-        "/chatbot/report-analysis-cloudinary",
-        payload
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${BACKEND_URL}/chatbot/report-analysis-cloudinary`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const aiReply = response.data.reply;
@@ -257,6 +269,7 @@ const Chatbot = ({ onClose }) => {
           </button>
         </form>
       </div>
+
       {/* Keeping the upload dialog JSX same as before */}
       {uploadDialogOpen && (
         <div className="upload-modal-overlay">
