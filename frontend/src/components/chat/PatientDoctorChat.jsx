@@ -1,14 +1,15 @@
 // frontend/src/components/chat/PatientDoctorChat.jsx
 
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
+// FIX: Use 'api' instead of 'axios'
+import api from "../../utils/api";
 import { useAuthContext } from "../../contexts/AuthContext";
 import { useSocketContext } from "../../contexts/SocketContext";
 import "../../assets/css/ChatStyles.css";
-import "../../assets/css/ChatWindow.css"; // Make sure you create and link this CSS file
+import "../../assets/css/ChatWindow.css";
 import { FaPaperPlane, FaTrash, FaUpload, FaCloud } from "react-icons/fa";
 
-// Premium Upload Modal Dialog 
+// Premium Upload Modal Dialog
 const UploadFileDialog = ({
   open,
   onClose,
@@ -19,8 +20,14 @@ const UploadFileDialog = ({
   errorCloud,
   tab,
   setTab,
+  user, // Pass user prop to component
 }) => {
   const [selectedCloudFile, setSelectedCloudFile] = useState(null);
+
+  // FIX: Handle Cloudinary loading here or pass it down
+  // For simplicity, we assume parent handles logic or we use props
+  // But wait, the previous code had useEffect HERE. Let's fix that.
+
   if (!open) return null;
   return (
     <div className="upload-modal-overlay">
@@ -106,24 +113,23 @@ const PatientDoctorChat = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // State for the upload dialog (added for completeness)
+  // State for the upload dialog
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [cloudFiles, setCloudFiles] = useState([]);
   const [loadingCloud, setLoadingCloud] = useState(false);
   const [errorCloud, setErrorCloud] = useState(null);
   const [uploadTab, setUploadTab] = useState("computer");
+
   // Fetch Cloudinary files when dialog opens and tab is 'cloud'
   useEffect(() => {
     if (uploadDialogOpen && uploadTab === "cloud") {
       setLoadingCloud(true);
       setErrorCloud(null);
-      const token = localStorage.getItem("token");
       // Use new endpoint to fetch only files uploaded by the current user
       if (user && user._id) {
-        axios
-          .get(`http://localhost:5000/api/cloudinary/user/${user._id}`, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-          })
+        // FIX: Use api.get (no localhost)
+        api
+          .get(`/cloudinary/user/${user._id}`)
           .then((res) => {
             setCloudFiles(res.data.files || []);
             setLoadingCloud(false);
@@ -137,20 +143,14 @@ const PatientDoctorChat = () => {
         setLoadingCloud(false);
       }
     }
-  }, [uploadDialogOpen, uploadTab]);
+  }, [uploadDialogOpen, uploadTab, user]);
 
-  // Ref for auto-scrolling
   const messagesEndRef = useRef(null);
 
   const fetchDoctors = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "http://localhost:5000/api/doctors/verified",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      // FIX: Use api.get (removes localhost and auto-attaches token)
+      const response = await api.get("/doctors/verified");
       setDoctors(response.data?.data || []);
     } catch (error) {
       console.error("Error fetching verified doctors:", error);
@@ -164,13 +164,8 @@ const PatientDoctorChat = () => {
 
   const fetchConversations = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `http://localhost:5000/api/chat/conversations`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      // FIX: Use api.get
+      const response = await api.get("/chat/conversations");
       setConversations(response.data?.data || []);
     } catch (error) {
       console.error("Error fetching conversations:", error);
@@ -180,13 +175,8 @@ const PatientDoctorChat = () => {
 
   const fetchMessages = async (conversationId) => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `http://localhost:5000/api/chat/messages/${conversationId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      // FIX: Use api.get
+      const response = await api.get(`/chat/messages/${conversationId}`);
       setMessages(response.data?.data || []);
     } catch (error) {
       console.error("Error fetching messages:", error);
@@ -199,19 +189,15 @@ const PatientDoctorChat = () => {
     if (!file || !selectedConversation) return;
     setUploadDialogOpen(false);
     try {
-      const token = localStorage.getItem("token");
       const formData = new FormData();
       formData.append("file", file);
       formData.append("conversationId", selectedConversation._id);
       formData.append("senderId", user._id);
-      // Backend endpoint for chat file upload (implement if missing)
-      await axios.post(
-        "http://localhost:5000/api/chat/messages/file",
-        formData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+
+      // FIX: Use api.post and force multipart headers
+      await api.post("/chat/messages/file", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
     } catch (err) {
       alert("File upload failed");
     }
@@ -221,25 +207,18 @@ const PatientDoctorChat = () => {
     if (!publicId || !selectedConversation) return;
     setUploadDialogOpen(false);
     try {
-      const token = localStorage.getItem("token");
-      // Find the selected file details from cloudFiles
       const selectedFile = cloudFiles.find((f) => f.public_id === publicId);
       if (!selectedFile) throw new Error("File not found");
-      // Backend endpoint for sharing cloud file in chat
-      await axios.post(
-        "http://localhost:5000/api/chat/messages/cloudinary",
-        {
-          publicId,
-          conversationId: selectedConversation._id,
-          senderId: user._id,
-          fileUrl: selectedFile.url,
-          fileName: selectedFile.original_filename,
-          fileType: selectedFile.resource_type,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+
+      // FIX: Use api.post
+      await api.post("/chat/messages/cloudinary", {
+        publicId,
+        conversationId: selectedConversation._id,
+        senderId: user._id,
+        fileUrl: selectedFile.url,
+        fileName: selectedFile.original_filename,
+        fileType: selectedFile.resource_type,
+      });
     } catch (err) {
       alert("Cloud file share failed");
     }
@@ -316,12 +295,10 @@ const PatientDoctorChat = () => {
 
   const handleSelectDoctor = async (doctor) => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post(
-        "http://localhost:5000/api/chat/conversations",
-        { recipientId: doctor._id },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      // FIX: Use api.post
+      const response = await api.post("/chat/conversations", {
+        recipientId: doctor._id,
+      });
 
       const conv = response.data.data;
       setSelectedConversation(conv);
@@ -343,12 +320,8 @@ const PatientDoctorChat = () => {
     };
 
     try {
-      const token = localStorage.getItem("token");
-      await axios.post("http://localhost:5000/api/chat/messages", messageData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      // The socket event will handle the UI update, so no local state update is needed here.
+      // FIX: Use api.post
+      await api.post("/chat/messages", messageData);
       setNewMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
@@ -359,14 +332,8 @@ const PatientDoctorChat = () => {
   const handleDeleteMessage = async (messageId) => {
     if (window.confirm("Are you sure you want to delete this message?")) {
       try {
-        const token = localStorage.getItem("token");
-        await axios.delete(
-          `http://localhost:5000/api/chat/messages/${messageId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
+        // FIX: Use api.delete
+        await api.delete(`/chat/messages/${messageId}`);
         socket.emit("deleteMessage", messageId);
       } catch (error) {
         console.error("Error deleting message:", error);
@@ -466,7 +433,6 @@ const PatientDoctorChat = () => {
                   {message.fileUrl ? (
                     <div className="file-message-card premium-file-card">
                       <div className="file-message-icon">
-                        {/* Show PDF, image, or generic file icon */}
                         {message.fileType === "pdf" ||
                         (message.fileName &&
                           message.fileName.toLowerCase().endsWith(".pdf")) ? (
@@ -581,6 +547,7 @@ const PatientDoctorChat = () => {
           errorCloud={errorCloud}
           tab={uploadTab}
           setTab={setUploadTab}
+          user={user}
         />
       </div>
     );

@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-// FIX: Import the centralized API utility
 import api from "../utils/api";
-import { FaTrash, FaEye, FaDownload } from "react-icons/fa";
+import { FaTrash } from "react-icons/fa";
 import "./MedicalReportUpload.css";
 import { useLocation } from "react-router-dom";
 import { useAuthContext } from "../contexts/AuthContext";
-import ChatFloatingButton from "./ChatWithAI";
+import ChatFloatingButton from "./ChatWithAI"; // Ensure this import path is correct
 
 const MedicalReportUpload = ({ patientId }) => {
   const location = useLocation();
@@ -38,8 +37,6 @@ const MedicalReportUpload = ({ patientId }) => {
 
     try {
       setLoading(true);
-      // FIX: Use api.get() instead of axios.get()
-      // Note: api.js base URL already includes '/api', so we just need '/reports/...'
       const res = await api.get(`/reports/${patientId}`);
 
       let reportsData = [];
@@ -103,13 +100,20 @@ const MedicalReportUpload = ({ patientId }) => {
     }
     try {
       setLoading(true);
-      // FIX: Use api.post(). Content-Type multipart is handled automatically.
+
+      // FIX: Force Content-Type to multipart/form-data for file uploads
+      const config = {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      };
+
       if (Array.isArray(selectedFile)) {
         for (const file of selectedFile) {
           const formData = new FormData();
           formData.append("file", file);
           formData.append("patientId", patientId);
-          await api.post(`/reports/upload`, formData);
+          await api.post(`/reports/upload`, formData, config);
         }
         setUploadStatus(
           `✅ ${selectedFile.length} files uploaded successfully`
@@ -118,7 +122,7 @@ const MedicalReportUpload = ({ patientId }) => {
         const formData = new FormData();
         formData.append("file", selectedFile);
         formData.append("patientId", patientId);
-        await api.post(`/reports/upload`, formData);
+        await api.post(`/reports/upload`, formData, config);
         setUploadStatus(`✅ ${selectedFile.name} uploaded successfully`);
       }
       setSelectedFile(null);
@@ -127,7 +131,10 @@ const MedicalReportUpload = ({ patientId }) => {
       setTimeout(() => setUploadStatus(""), 4000);
     } catch (err) {
       console.error("Upload Error:", err);
-      const errorMessage = err.response?.data?.message || "Upload failed";
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Upload failed";
       setUploadStatus(`❌ ${errorMessage}`);
     } finally {
       setLoading(false);
@@ -138,7 +145,6 @@ const MedicalReportUpload = ({ patientId }) => {
     if (!window.confirm("Are you sure you want to delete this report?")) return;
     try {
       setLoading(true);
-      // FIX: Use api.delete()
       await api.delete(`/reports/${id}`);
       await fetchReports();
       setUploadStatus("✅ Report deleted successfully");
@@ -150,66 +156,8 @@ const MedicalReportUpload = ({ patientId }) => {
     }
   };
 
-  const handleBatchDelete = async () => {
-    if (selectedReports.length === 0) return;
-    if (!window.confirm(`Delete ${selectedReports.length} report(s)?`)) return;
-    try {
-      setLoading(true);
-      for (const id of selectedReports) {
-        // FIX: Use api.delete()
-        await api.delete(`/reports/${id}`);
-      }
-      await fetchReports();
-      setSelectedReports([]);
-      setUploadStatus(`✅ Deleted ${selectedReports.length} report(s)`);
-      setTimeout(() => setUploadStatus(""), 3000);
-    } catch (err) {
-      setUploadStatus(`❌ Batch delete failed`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSelectReport = (id) => {
-    setSelectedReports((prev) =>
-      prev.includes(id) ? prev.filter((rid) => rid !== id) : [...prev, id]
-    );
-  };
-  const handleSelectAll = (allIds) => {
-    if (selectedReports.length === allIds.length) setSelectedReports([]);
-    else setSelectedReports(allIds);
-  };
-
-  const handlePreview = (fileUrl, contentType) => {
+  const handlePreview = (fileUrl) => {
     window.open(fileUrl, "_blank", "noopener,noreferrer");
-  };
-
-  const handleDownload = async (fileUrl, filename) => {
-    try {
-      const response = await fetch(fileUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename || "download";
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      window.open(fileUrl, "_blank");
-    }
-  };
-
-  const formatDate = (dateStr) => {
-    try {
-      const date = new Date(dateStr);
-      return isNaN(date.getTime())
-        ? "Invalid Date"
-        : date.toLocaleDateString() + " " + date.toLocaleTimeString();
-    } catch (err) {
-      return "Invalid Date";
-    }
   };
 
   return (
@@ -315,8 +263,6 @@ const MedicalReportUpload = ({ patientId }) => {
       {!loading && (!reports || reports.length === 0) ? (
         <p>No reports uploaded yet.</p>
       ) : (
-        /* ... Keeping your grid/list logic but omitting for brevity, logic remains same ... */
-        /* Note: Make sure to verify your filteredReports logic in your own file, it looked fine */
         (() => {
           let filteredReports = reports;
           if (searchQuery.trim())
@@ -330,14 +276,13 @@ const MedicalReportUpload = ({ patientId }) => {
               (r) => r.filename.split(".").pop().toLowerCase() === filterType
             );
           filteredReports.sort((a, b) => {
-            // ... sort logic ...
             return sortOrder === "asc"
               ? new Date(a.createdAt) - new Date(b.createdAt)
               : new Date(b.createdAt) - new Date(a.createdAt);
           });
 
           return (
-            <div className="reports-grid">
+            <div className={`reports-${viewMode}`}>
               {filteredReports.map((report) => (
                 <div key={report._id || report.id} className="report-card">
                   <div className="report-card-filename">{report.filename}</div>
