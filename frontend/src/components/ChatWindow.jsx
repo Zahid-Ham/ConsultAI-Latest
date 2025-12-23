@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+// FIX: Import 'api' instead of 'axios'
+import api from "../utils/api";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   FaUser,
   FaRobot,
@@ -16,8 +17,8 @@ import {
 } from "react-icons/fa";
 import { useAuthContext } from "../contexts/AuthContext";
 import "./ChatbotLayout.css";
-import ReportDisplay from './ReportDisplay';
-import './ReportDisplay.css';
+import ReportDisplay from "./ReportDisplay";
+import "./ReportDisplay.css";
 
 // Upload Modal Dialog Component
 const UploadFileDialog = ({
@@ -33,7 +34,7 @@ const UploadFileDialog = ({
 }) => {
   const [selectedCloudFile, setSelectedCloudFile] = useState(null);
   if (!open) return null;
-  
+
   return (
     <div className="upload-modal-overlay">
       <div className="upload-modal">
@@ -110,7 +111,7 @@ const UploadFileDialog = ({
 const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
   const navigate = useNavigate();
   const { user } = useAuthContext();
-  
+
   // Disable scroll for chat/ai page only
   useEffect(() => {
     if (window.location.pathname === "/chat/ai") {
@@ -118,7 +119,7 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
       return () => document.body.classList.remove("chat-ai-no-scroll");
     }
   }, []);
-  
+
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -138,12 +139,11 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
     if (uploadDialogOpen && uploadTab === "cloud") {
       setLoadingCloud(true);
       setErrorCloud(null);
-      const token = localStorage.getItem("token");
+      // FIX: No need to manually get token, 'api' does it.
       if (user && user._id) {
-        axios
-          .get(`http://localhost:5000/api/cloudinary/user/${user._id}`, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-          })
+        // FIX: Use api.get with relative path
+        api
+          .get(`/cloudinary/user/${user._id}`)
           .then((res) => {
             setCloudFiles(res.data.files || []);
             setLoadingCloud(false);
@@ -192,20 +192,16 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
         const newChat = await onNewChat();
         if (newChat) {
           if (onChatUpdate) onChatUpdate(newChat);
-          const token = localStorage.getItem("token");
-          await axios.post(
-            "http://localhost:5000/api/chatbot/symptom-analysis",
-            { message: userMessage.text, chatId: newChat._id },
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          );
-          const chatRes = await axios.get(
-            `http://localhost:5000/api/chatbot/history/${newChat._id}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          );
+
+          // FIX: Use api.post with relative path and NO headers (interceptor handles auth)
+          await api.post("/chatbot/symptom-analysis", {
+            message: userMessage.text,
+            chatId: newChat._id,
+          });
+
+          // FIX: Use api.get with relative path
+          const chatRes = await api.get(`/chatbot/history/${newChat._id}`);
+
           const updatedChat = chatRes.data.chat;
           setMessages(updatedChat.messages);
           if (onChatUpdate) onChatUpdate(updatedChat);
@@ -226,26 +222,20 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
     }
 
     const userMessage = { sender: "user", text: input };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("token");
-      await axios.post(
-        "http://localhost:5000/api/chatbot/symptom-analysis",
-        { message: input, chatId: selectedChat ? selectedChat._id : null },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      // FIX: Use api.post with relative path
+      await api.post("/chatbot/symptom-analysis", {
+        message: input,
+        chatId: selectedChat ? selectedChat._id : null,
+      });
+
       if (selectedChat && selectedChat._id) {
-        const chatRes = await axios.get(
-          `http://localhost:5000/api/chatbot/history/${selectedChat._id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        // FIX: Use api.get with relative path
+        const chatRes = await api.get(`/chatbot/history/${selectedChat._id}`);
         const updatedChat = chatRes.data.chat;
         setMessages(updatedChat.messages);
         if (onChatUpdate) onChatUpdate(updatedChat);
@@ -274,22 +264,22 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
     const formData = new FormData();
     formData.append("file", file);
     if (selectedChat && selectedChat._id) {
-        formData.append("chatId", selectedChat._id);
+      formData.append("chatId", selectedChat._id);
     } else {
-        formData.append("chatId", ''); 
+      formData.append("chatId", "");
     }
     formData.append("userMessage", userMessage);
 
     const displayMessage = userMessage
       ? `${userMessage} [Attached file: ${file.name}]`
       : `File attached: ${file.name}`;
-      
+
     const userMessageObj = {
       sender: "user",
       text: displayMessage,
     };
-    
-    setMessages(prevMessages => [...prevMessages, userMessageObj]);
+
+    setMessages((prevMessages) => [...prevMessages, userMessageObj]);
     setLoading(true);
     setFile(null);
     if (fileInputRef.current) {
@@ -297,26 +287,17 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
     }
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post(
-        "http://localhost:5000/api/chatbot/report-analysis",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      // FIX: Use api.post. Content-Type header overrides default JSON but Auth header is auto-added
+      const response = await api.post("/chatbot/report-analysis", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       const { chatId } = response.data;
 
-      const chatRes = await axios.get(
-        `http://localhost:5000/api/chatbot/history/${chatId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      // FIX: Use api.get
+      const chatRes = await api.get(`/chatbot/history/${chatId}`);
       const updatedChat = chatRes.data.chat;
 
       setMessages(updatedChat.messages);
@@ -324,7 +305,6 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
       if (onChatUpdate) {
         onChatUpdate(updatedChat);
       }
-
     } catch (error) {
       console.error("Error uploading file:", error);
       const errorMessage = {
@@ -348,23 +328,26 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
   const handleSelectCloudFile = async (publicId) => {
     if (!publicId) return;
     setUploadDialogOpen(false);
-    
+
     try {
-      const token = localStorage.getItem("token");
       const selectedFile = cloudFiles.find((f) => f.public_id === publicId);
       if (!selectedFile) throw new Error("File not found");
 
       // Show user message indicating file is being processed
       const displayMessage = input.trim()
-        ? `${input.trim()} [Cloudinary file: ${selectedFile.original_filename || selectedFile.public_id}]`
-        : `Cloudinary file attached: ${selectedFile.original_filename || selectedFile.public_id}`;
-      
+        ? `${input.trim()} [Cloudinary file: ${
+            selectedFile.original_filename || selectedFile.public_id
+          }]`
+        : `Cloudinary file attached: ${
+            selectedFile.original_filename || selectedFile.public_id
+          }`;
+
       const userMessageObj = {
         sender: "user",
         text: displayMessage,
       };
-      
-      setMessages(prevMessages => [...prevMessages, userMessageObj]);
+
+      setMessages((prevMessages) => [...prevMessages, userMessageObj]);
       setLoading(true);
 
       // Prepare data for cloudinary file analysis
@@ -374,25 +357,19 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
         fileName: selectedFile.original_filename,
         fileType: selectedFile.resource_type,
         userMessage: input.trim(),
-        chatId: selectedChat && selectedChat._id ? selectedChat._id : '',
+        chatId: selectedChat && selectedChat._id ? selectedChat._id : "",
       };
 
-      const response = await axios.post(
-        "http://localhost:5000/api/chatbot/report-analysis-cloudinary",
-        payload,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+      // FIX: Use api.post
+      const response = await api.post(
+        "/chatbot/report-analysis-cloudinary",
+        payload
       );
 
       const { chatId } = response.data;
 
-      const chatRes = await axios.get(
-        `http://localhost:5000/api/chatbot/history/${chatId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      // FIX: Use api.get
+      const chatRes = await api.get(`/chatbot/history/${chatId}`);
       const updatedChat = chatRes.data.chat;
 
       setMessages(updatedChat.messages);
@@ -401,7 +378,6 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
       if (onChatUpdate) {
         onChatUpdate(updatedChat);
       }
-
     } catch (error) {
       console.error("Error analyzing cloud file:", error);
       const errorMessage = {
@@ -413,7 +389,7 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
       setLoading(false);
     }
   };
-  
+
   const handleBubbleClick = (text) => {
     setInput(text);
   };
@@ -474,17 +450,21 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
               </div>
               <div className="message-content">
                 {(() => {
-                  if (msg.sender === 'user') {
+                  if (msg.sender === "user") {
                     return <p>{msg.text}</p>;
                   }
-                  if (msg.sender === 'ai' && msg.text) {
-                    if (typeof msg.text === 'object' && msg.text !== null) {
+                  if (msg.sender === "ai" && msg.text) {
+                    if (typeof msg.text === "object" && msg.text !== null) {
                       return <ReportDisplay data={msg.text} />;
                     }
                     try {
                       const parsedData = JSON.parse(msg.text);
-      
-                      if (typeof parsedData === 'object' && parsedData !== null && parsedData.keyTakeaways) {
+
+                      if (
+                        typeof parsedData === "object" &&
+                        parsedData !== null &&
+                        parsedData.keyTakeaways
+                      ) {
                         return <ReportDisplay data={parsedData} />;
                       }
                     } catch (e) {
@@ -492,7 +472,9 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
                     }
                     return (
                       <div className="markdown-content">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{String(msg.text)}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {String(msg.text)}
+                        </ReactMarkdown>
                       </div>
                     );
                   }
@@ -547,19 +529,19 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
       </div>
       <div className="chat-input-area">
         <div className="file-upload-section">
-          <label 
+          <label
             className="file-upload-btn"
             onClick={() => setUploadDialogOpen(true)}
-            style={{ cursor: 'pointer' }}
+            style={{ cursor: "pointer" }}
           >
             <FaFileAlt />
           </label>
           {file && (
             <>
               <span className="file-name">{file.name}</span>
-              <button 
-                type="button" 
-                onClick={() => setFile(null)} 
+              <button
+                type="button"
+                onClick={() => setFile(null)}
                 className="remove-file-btn"
                 title="Remove file"
               >
@@ -573,7 +555,9 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={file ? "Add a message about this file..." : "Message ConsultAI..."}
+            placeholder={
+              file ? "Add a message about this file..." : "Message ConsultAI..."
+            }
             className="message-input"
             disabled={loading}
           />
@@ -614,7 +598,7 @@ const ChatWindow = ({ selectedChat, onNewChat, onChatUpdate }) => {
           </button>
         </form>
       </div>
-      
+
       <UploadFileDialog
         open={uploadDialogOpen}
         onClose={() => setUploadDialogOpen(false)}
