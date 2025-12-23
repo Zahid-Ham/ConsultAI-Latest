@@ -1,4 +1,4 @@
-// server.js
+// backend/server.js
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -17,33 +17,54 @@ const chatbotRoutes = require("./routes/chatbotRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const cloudinaryRoutes = require("./routes/cloudinaryRoutes");
-const userRoutes = require("./routes/userRoutes"); // <-- IMPORTED new user routes
+const userRoutes = require("./routes/userRoutes");
 
 const { authenticateToken, authorizeRole } = require("./middleware/auth");
 
 const app = express();
 const server = http.createServer(app);
 
-// Correctly configure CORS for Express
+// --- FIX 1: Allow your Vercel App ---
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://consult-ai-inky.vercel.app", // Your specific Vercel URL
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        // For testing purposes, you can uncomment the line below to allow ALL origins if you are still stuck
+        // callback(null, true);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   })
 );
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Correctly configure CORS for Socket.IO
+// --- FIX 2: Allow Socket.IO for Vercel ---
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://consult-ai-inky.vercel.app", // Your Vercel URL
+    ],
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
-// IMPORTANT: Add io instance to the Express app so it's available in controllers
 app.set("io", io);
 
 // MongoDB Connection
@@ -65,11 +86,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/health", (req, res) => {
-  res.json({
-    status: "OK",
-    message: "Server is running",
-    timestamp: new Date().toISOString(),
-  });
+  res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
 app.use("/api/auth", authRoutes);
@@ -79,15 +96,15 @@ app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/cloudinary", cloudinaryRoutes);
-app.use("/api/users", userRoutes); // <-- ADDED new user routes
+app.use("/api/users", userRoutes);
 
-// Socket.IO connection handling
+// Socket.IO Logic
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
   socket.on("register", (userId) => {
     socket.join(userId);
-    console.log(`User ${userId} registered and joined their personal room.`);
+    console.log(`User ${userId} registered.`);
   });
 
   socket.on("disconnect", () => {
@@ -95,54 +112,19 @@ io.on("connection", (socket) => {
   });
 });
 
-// Admin only route example
-app.get(
-  "/api/admin/users",
-  authenticateToken,
-  authorizeRole("admin"),
-  async (req, res) => {
-    try {
-      const users = await User.find({}).select("-password");
-      res.json({
-        success: true,
-        data: users,
-      });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  }
-);
-
-// Test route to get all users (for development/testing)
-app.get("/api/users", async (req, res) => {
-  try {
-    const users = await User.find({});
-    res.json(users);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Error handling middleware
+// Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: "Something went wrong!" });
 });
 
-// 404 handler
-app.use("*", (req, res) => {
-  res.status(404).json({ message: "Route not found" });
-});
-
 const PORT = process.env.PORT || 5000;
 
-// Start server using the HTTP server instance, not the Express app
 const startServer = async () => {
   try {
     await connectDB();
     server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
-      console.log(`Environment: ${process.env.NODE_ENV}`);
     });
   } catch (error) {
     console.error("Failed to start server:", error);
