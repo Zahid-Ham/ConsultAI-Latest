@@ -1,7 +1,5 @@
-// frontend/src/components/Chatbot.jsx
-
 import React, { useState, useEffect, useRef } from "react";
-// MODIFIED: Import api utility
+// FIX 1: Import the 'api' utility instead of just 'axios'
 import api from "../utils/api";
 import {
   FaTimes,
@@ -14,7 +12,6 @@ import {
 } from "react-icons/fa";
 import "./Chatbot.css";
 
-// Chatbot component for the small pop-up chat window
 const Chatbot = ({ onClose }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -23,7 +20,7 @@ const Chatbot = ({ onClose }) => {
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // Cloudinary dialog states (reused from ChatWindow)
+  // Cloudinary dialog states
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [cloudFiles, setCloudFiles] = useState([]);
   const [loadingCloud, setLoadingCloud] = useState(false);
@@ -43,7 +40,8 @@ const Chatbot = ({ onClose }) => {
     setLoading(true);
 
     try {
-      // MODIFIED: Use api.post with relative URL
+      // FIX 2: Use 'api.post' and remove the 'http://localhost:5000' part
+      // The 'api' utility automatically adds the backend URL and the token
       const response = await api.post("/chatbot/symptom-analysis", {
         message: input,
       });
@@ -68,12 +66,11 @@ const Chatbot = ({ onClose }) => {
     setFile(e.target.files[0]);
   };
 
-  // Fetch Cloudinary files when dialog opens and tab is 'cloud'
+  // Fetch Cloudinary files
   useEffect(() => {
     if (uploadDialogOpen && uploadTab === "cloud") {
       setLoadingCloud(true);
       setErrorCloud(null);
-
       const userStr = localStorage.getItem("user");
       let userId = null;
       try {
@@ -82,8 +79,9 @@ const Chatbot = ({ onClose }) => {
       } catch (e) {
         userId = null;
       }
+
       if (userId) {
-        // MODIFIED: Use api.get with relative URL
+        // FIX 3: Use api.get
         api
           .get(`/cloudinary/user/${userId}`)
           .then((res) => {
@@ -113,7 +111,7 @@ const Chatbot = ({ onClose }) => {
     setLoading(true);
 
     try {
-      // MODIFIED: Use api.post. Content-Type multipart is handled automatically by axios when passing formData
+      // FIX 4: Use api.post for file upload
       const response = await api.post("/chatbot/report-analysis", formData);
 
       const aiMessage = { sender: "ai", text: response.data.reply };
@@ -122,19 +120,16 @@ const Chatbot = ({ onClose }) => {
       console.error("Error uploading file:", error);
       const errorMessage = {
         sender: "ai",
-        text: "Sorry, something went wrong with the file upload. Please ensure it is a valid PDF.",
+        text: "Sorry, something went wrong with the file upload.",
       };
       setMessages((currentMessages) => [...currentMessages, errorMessage]);
     } finally {
       setLoading(false);
       setFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
-  // Handle cloud file selection (reuse same flow as ChatWindow)
   const handleSelectCloudFile = async (publicId) => {
     if (!publicId) return;
     setUploadDialogOpen(false);
@@ -163,7 +158,7 @@ const Chatbot = ({ onClose }) => {
         chatId: null,
       };
 
-      // MODIFIED: Use api.post with relative URL
+      // FIX 5: Use api.post for cloud analysis
       const response = await api.post(
         "/chatbot/report-analysis-cloudinary",
         payload
@@ -263,7 +258,7 @@ const Chatbot = ({ onClose }) => {
         </form>
       </div>
 
-      {/* Upload dialog (Simplified for brevity - keep your existing return JSX here exactly as it is in your file, just ensure the functions above are updated) */}
+      {/* Upload Dialog - Keeping logic simple here */}
       {uploadDialogOpen && (
         <div className="upload-modal-overlay">
           <div className="upload-modal">
@@ -311,7 +306,7 @@ const Chatbot = ({ onClose }) => {
                     <p>{errorCloud}</p>
                   ) : (
                     <ul className="cloud-file-list">
-                      {cloudFiles && cloudFiles.length > 0 ? (
+                      {cloudFiles.length > 0 ? (
                         cloudFiles.map((f) => (
                           <li
                             key={f.public_id}
@@ -326,7 +321,7 @@ const Chatbot = ({ onClose }) => {
                           </li>
                         ))
                       ) : (
-                        <li>No files found in Cloudinary.</li>
+                        <li>No files found.</li>
                       )}
                     </ul>
                   )}
