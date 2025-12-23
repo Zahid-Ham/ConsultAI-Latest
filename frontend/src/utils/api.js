@@ -1,10 +1,13 @@
 import axios from "axios";
 
+// --- HARDCODED URL FIX ---
+// We explicitly set the URL to your Render backend.
+const API_BASE_URL = "https://consultai-backend.onrender.com/api";
+
 // Create axios instance with base configuration
 const api = axios.create({
-  // HARDCODED: Directly pointing to Render backend
-  baseURL: "https://consultai-backend.onrender.com/api",
-  timeout: 20000, // Increased timeout for slow free-tier servers
+  baseURL: API_BASE_URL,
+  timeout: 30000, // Increased to 30s because Render free tier sleeps
   headers: {
     "Content-Type": "application/json",
   },
@@ -33,6 +36,8 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
+      // Optional: Redirect to login if you have a routing utility
+      // window.location.href = '/login';
     }
 
     if (error.response?.status === 403) {
@@ -45,13 +50,18 @@ api.interceptors.response.use(
 
 // API helper functions
 export const authAPI = {
+  // Login
   login: (credentials) => {
     if (credentials.googleLogin) {
       return api.post("/auth/google-login", credentials);
     }
     return api.post("/auth/login", credentials);
   },
+
+  // Register
   register: (userData) => api.post("/auth/register", userData),
+
+  // Get current user profile
   getProfile: () => api.get("/users/profile"),
 };
 
@@ -67,27 +77,47 @@ export const doctorAPI = {
   verifyDoctor: (doctorId) => api.put(`/doctors/verify/${doctorId}`),
 };
 
+// Token management helpers
 export const tokenManager = {
-  setToken: (token) => localStorage.setItem("token", token),
-  getToken: () => localStorage.getItem("token"),
-  removeToken: () => localStorage.removeItem("token"),
-  isAuthenticated: () => !!localStorage.getItem("token"),
+  setToken: (token) => {
+    localStorage.setItem("token", token);
+  },
+  getToken: () => {
+    return localStorage.getItem("token");
+  },
+  removeToken: () => {
+    localStorage.removeItem("token");
+  },
+  isAuthenticated: () => {
+    return !!localStorage.getItem("token");
+  },
 };
 
+// User management helpers
 export const userManager = {
-  setUser: (user) => localStorage.setItem("user", JSON.stringify(user)),
+  setUser: (user) => {
+    localStorage.setItem("user", JSON.stringify(user));
+  },
   getUser: () => {
     const user = localStorage.getItem("user");
     return user ? JSON.parse(user) : null;
   },
-  removeUser: () => localStorage.removeItem("user"),
+  removeUser: () => {
+    localStorage.removeItem("user");
+  },
   hasRole: (role) => {
     const user = userManager.getUser();
     return user?.role === role;
   },
-  isAdmin: () => userManager.hasRole("admin"),
-  isDoctor: () => userManager.hasRole("doctor"),
-  isPatient: () => userManager.hasRole("patient"),
+  isAdmin: () => {
+    return userManager.hasRole("admin");
+  },
+  isDoctor: () => {
+    return userManager.hasRole("doctor");
+  },
+  isPatient: () => {
+    return userManager.hasRole("patient");
+  },
 };
 
 export default api;
