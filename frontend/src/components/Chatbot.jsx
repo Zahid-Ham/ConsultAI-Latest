@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-// FIX 1: Import the 'api' utility instead of just 'axios'
+// FIX 1: Import the 'api' utility. This handles the Render URL automatically.
 import api from "../utils/api";
 import {
   FaTimes,
@@ -40,8 +40,7 @@ const Chatbot = ({ onClose }) => {
     setLoading(true);
 
     try {
-      // FIX 2: Use 'api.post' and remove the 'http://localhost:5000' part
-      // The 'api' utility automatically adds the backend URL and the token
+      // FIX 2: Use 'api.post' (No http://localhost:5000)
       const response = await api.post("/chatbot/symptom-analysis", {
         message: input,
       });
@@ -71,6 +70,7 @@ const Chatbot = ({ onClose }) => {
     if (uploadDialogOpen && uploadTab === "cloud") {
       setLoadingCloud(true);
       setErrorCloud(null);
+
       const userStr = localStorage.getItem("user");
       let userId = null;
       try {
@@ -111,7 +111,7 @@ const Chatbot = ({ onClose }) => {
     setLoading(true);
 
     try {
-      // FIX 4: Use api.post for file upload
+      // FIX 4: Use api.post
       const response = await api.post("/chatbot/report-analysis", formData);
 
       const aiMessage = { sender: "ai", text: response.data.reply };
@@ -158,7 +158,7 @@ const Chatbot = ({ onClose }) => {
         chatId: null,
       };
 
-      // FIX 5: Use api.post for cloud analysis
+      // FIX 5: Use api.post
       const response = await api.post(
         "/chatbot/report-analysis-cloudinary",
         payload
@@ -257,8 +257,7 @@ const Chatbot = ({ onClose }) => {
           </button>
         </form>
       </div>
-
-      {/* Upload Dialog - Keeping logic simple here */}
+      {/* Keeping the upload dialog JSX same as before */}
       {uploadDialogOpen && (
         <div className="upload-modal-overlay">
           <div className="upload-modal">
