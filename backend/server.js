@@ -58,7 +58,8 @@ const io = new Server(server, {
   cors: {
     origin: [
       "http://localhost:5173",
-      "https://consult-ai-inky.vercel.app", // Your Vercel URL
+      "https://consult-ai-inky.vercel.app",
+      "https://consult-ai-project.vercel.app", // Your Vercel URL
     ],
     methods: ["GET", "POST"],
     credentials: true,
